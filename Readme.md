@@ -2,8 +2,6 @@
 
 This project is used for the [elegoo smart robot kit v4.0](https://www.elegoo.com/collections/robot-kits/products/elegoo-smart-robot-car-kit-v-4-0). 
 
-The [Arduino IDE](https://www.arduino.cc/en/software) is used.
-
 [`Platform.IO`](https://platformio.org/) is used for development.
 
 ## Notes
