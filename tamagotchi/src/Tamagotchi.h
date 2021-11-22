@@ -22,6 +22,7 @@ class Tamagotchi {
 
     private:
     void writeDataToEEPROM();
+    void writeToEEPROM(int address, int value);
     void readDataFromEEPROM();
     void readBatteryLevel();
     void debug(String s);
