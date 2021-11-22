@@ -1,20 +1,30 @@
 #include <avr/interrupt.h>
+#include "Arduino.h"
 
 class Tamagotchi {
     private:
-    int affection;
-    int hunger;
-    int sleepyness;
+    volatile int affection;
+    volatile int hunger;
+    volatile int sleepyness;
+    unsigned int tickCounter;
 
-    volatile char flag_save;
-    volatile char flag_is_pet;
-    volatile char flag_is_fed;
-    volatile char flag_read_battery;
+    // volatile because compiler should not optimize them
+    volatile byte flag_save;
+    volatile byte flag_is_pet;
+    volatile byte flag_is_fed;
+    volatile byte flag_read_battery;
 
     public:
+    Tamagotchi();
     void init();
+    void onTick();
     void loop();
 
     private:
-    
+    void writeDataToEEPROM();
+    void readDataFromEEPROM();
+    void readBatteryLevel();
+    void debug(String s);
 };
+
+extern Tamagotchi myTamagotchi;

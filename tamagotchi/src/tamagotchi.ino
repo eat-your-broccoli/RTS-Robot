@@ -8,6 +8,7 @@
  */
 #include <avr/wdt.h>
 #include "ApplicationFunctionSet_xxx0.h"
+#include "Tamagotchi.h"
 
 // will be incremented every 1 sec
 volatile unsigned int timer_counter = 0;
@@ -24,8 +25,12 @@ unsigned int timer_counter_max = 60 * 10;
 void setup()
 {
   Serial.begin(9600);
+  Serial.println("Serial init at 9600");
   // put your setup code here, to run once:
   Application_FunctionSet.ApplicationFunctionSet_Init();
+
+  // initialize tamagotchi
+  myTamagotchi.init();
   setupTimers();
   wdt_enable(WDTO_2S);
 }
@@ -34,6 +39,7 @@ void loop()
 {
   //put your main code here, to run repeatedly :
   wdt_reset();
+  myTamagotchi.loop();
   Application_FunctionSet.ApplicationFunctionSet_SensorDataUpdate();
   Application_FunctionSet.ApplicationFunctionSet_KeyCommand();
   Application_FunctionSet.ApplicationFunctionSet_RGB();
@@ -80,21 +86,5 @@ void setupTimers() {
 
 ISR(TIMER4_COMPA_vect) // timer compare interrupt service routine
 {
-  timer_counter++;
-  if(timer_counter >= timer_counter_max) timer_counter = 0;
-
-  // code that executes every 10 seconds here
-  if(timer_counter % (10) == 0) {
-    Serial.println("10 seconds");
-  }
-
-  // code that executes every minute here
-  if(timer_counter % timer_minute == 0) {
-    Serial.println("1 minute");
-  }
-
-  // code that executes every three minutes here
-  if(timer_counter % timer_three_minutes == 0) {
-    Serial.println("3 minutes");  
-  }
+  myTamagotchi.onTick();
 }
