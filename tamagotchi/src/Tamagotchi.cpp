@@ -55,7 +55,9 @@ void Tamagotchi::onTick() {
 
     // if the tick counter is not a multiple of 10 seconds return immediately
     // this way further evaluations only have to be done every 10 seconds
-    if(tickCounter % 10 != 0) return;
+    if(tickCounter % 10 != 0) {
+        return;
+    }
 
     // this code will execute every 10 seconds
      Serial.println("Hello every 10 seconds");
