@@ -58,7 +58,7 @@ void Tamagotchi::onTick() {
     if(tickCounter % 10 != 0) return;
 
     // this code will execute every 10 seconds
-    // Serial.println("Hello every 10 seconds")
+     Serial.println("Hello every 10 seconds");
     this->hunger++; 
     if(this->hunger > 100) this->hunger = 100;
     this->affection--; 
@@ -67,11 +67,11 @@ void Tamagotchi::onTick() {
     this->flag_read_battery = 1;
 
     if(tickCounter % 60 == 0) {
-      // Serial.println("Hello every 60 seconds")
+      Serial.println("Hello every 60 seconds");
         
         // because it's a multiple of 60 seconds, we place it here so cpu only has to evaluate it every 60 seconds (instead of every 10)
       if(tickCounter % 600 == 0) {
-        // Serial.println("Hello every 600 seconds") 
+         Serial.println("Hello every 600 seconds") ;
       }  
     }
 }
