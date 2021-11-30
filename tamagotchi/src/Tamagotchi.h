@@ -23,6 +23,7 @@ class Tamagotchi {
     void init();
     void onTick();
     void loop();
+    void setup();
 
     private:
     void writeDataToEEPROM();

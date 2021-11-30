@@ -1,6 +1,8 @@
 #include "Tamagotchi.h"
 #include <EEPROM.h>
 
+#include "DeviceDriverSet_xxx0.h"
+
 #ifndef DEBUG
 // comment next line out if you don't want debug messages
 // #define DEBUG
@@ -20,6 +22,7 @@
 #define DEFAULT_HUNGER 80
 #define DEFAULT_AFFECTION 20
 
+DeviceDriverSet_Voltage AppVoltage2;
 
 /**
  * @brief Tamagotchi class
@@ -80,7 +83,13 @@ void Tamagotchi::onTick() {
  * @brief executed on every loop of the main program
  * 
  */
+void Tamagotchi::setup()
+{
+    AppVoltage2.DeviceDriverSet_Voltage_Init();
+
+}
 void Tamagotchi::loop() {
+
     int c = 0;
 
     if(this->flag_read_battery) {
@@ -92,7 +101,7 @@ void Tamagotchi::loop() {
             if (millis() - VoltageData_time > 10) //read and update the data per 10ms
             {
                  VoltageData_time = millis();
-                 VoltageData_V = AppVoltage.DeviceDriverSet_Voltage_getAnalogue();
+                 VoltageData_V = AppVoltage2.DeviceDriverSet_Voltage_getAnalogue();
             if (VoltageData_V < VoltageDetection)
             {
                 flag_read_battery++;
