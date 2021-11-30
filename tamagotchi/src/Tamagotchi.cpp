@@ -86,6 +86,28 @@ void Tamagotchi::loop() {
     if(this->flag_read_battery) {
         c++;
         // TODO read battery level
+        { /*Battery voltage status update*/
+            static unsigned long VoltageData_time = 0;
+            static int flag_read_battery = 1;
+            if (millis() - VoltageData_time > 10) //read and update the data per 10ms
+            {
+                 VoltageData_time = millis();
+                 VoltageData_V = AppVoltage.DeviceDriverSet_Voltage_getAnalogue();
+            if (VoltageData_V < VoltageDetection)
+            {
+                flag_read_battery++;
+            if (flag_read_battery == 500) //Continuity to judge the latest voltage value multiple 
+            {
+                VoltageDetectionStatus = true;
+                flag_read_battery = 0;
+            }
+        }
+                 else
+                {
+                    VoltageDetectionStatus = false;
+                }
+            }
+        }
         // TODO convert battery level to sleepyness
     }
 

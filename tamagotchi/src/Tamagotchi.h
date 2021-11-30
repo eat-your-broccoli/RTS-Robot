@@ -7,6 +7,10 @@ class Tamagotchi {
     volatile int hunger;
     volatile int sleepyness;
     unsigned int tickCounter;
+    volatile float VoltageData_V;        //Battery Voltage Value
+    const float VoltageDetection = 7.00;
+    boolean VoltageDetectionStatus = false;
+    
 
     // volatile because compiler should not optimize them
     volatile byte flag_save;
