@@ -7,6 +7,7 @@
  * @FilePath: 
  */
 #include <avr/wdt.h>
+#include <Wire.h>
 #include "ApplicationFunctionSet_xxx0.h"
 #include "Tamagotchi.h"
 
@@ -30,7 +31,7 @@ void setup()
   Application_FunctionSet.ApplicationFunctionSet_Init();
 
   // initialize tamagotchi
-  myTamagotchi.init();
+  myTamagotchi.init(&Wire);
   setupTimers();
   wdt_enable(WDTO_2S);
 }

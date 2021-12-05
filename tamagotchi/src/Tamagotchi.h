@@ -1,5 +1,12 @@
 #include <avr/interrupt.h>
 #include "Arduino.h"
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+
+#ifndef SCREEN_ADDRESS
+#define SCREEN_ADDRESS 0x3C
+#endif
 
 class Tamagotchi {
     private:
@@ -14,9 +21,17 @@ class Tamagotchi {
     volatile byte flag_is_fed;
     volatile byte flag_read_battery;
 
+    // SSD1306 display 
+    // reference to the display itself
+    Adafruit_SSD1306 display;
+
+    // dispaly vars
+    // index of the face that is displayed
+    unsigned int display_index;
+
     public:
     Tamagotchi();
-    void init();
+    void init(TwoWire *twi);
     void onTick();
     void loop();
 
@@ -26,6 +41,7 @@ class Tamagotchi {
     void readDataFromEEPROM();
     void readBatteryLevel();
     void debug(String s);
+    void displayFace(unsigned int index);
 };
 
 extern Tamagotchi myTamagotchi;

@@ -1,5 +1,6 @@
 #include "Tamagotchi.h"
 #include <EEPROM.h>
+#include "Face_Bitmaps.h"
 
 #ifndef DEBUG
 // comment next line out if you don't want debug messages
@@ -20,6 +21,19 @@
 #define DEFAULT_HUNGER 80
 #define DEFAULT_AFFECTION 20
 
+// 6 faces
+#define FACE_COUNT 6
+
+// IF ENTRIES ARE ADDED, UPDATE THE FACE_COUNT!!!
+// class because we don't want to pollute namespace. see #3 in https://www.modernescpp.com/index.php/c-core-guidelines-rules-for-enumerations
+enum class enum_faces {
+  happy,
+  neutral,
+  sad,
+  awake,
+  sleepy,
+  hungry
+};
 
 /**
  * @brief Tamagotchi class
@@ -28,8 +42,6 @@
  * includes sentiment like hunger, sleepyness and affection
  * 
  */
-
-
 Tamagotchi myTamagotchi;
 
 Tamagotchi::Tamagotchi() {
@@ -38,9 +50,15 @@ Tamagotchi::Tamagotchi() {
     this->affection = 20;
 };
 
-void Tamagotchi::init() {
+void Tamagotchi::init(TwoWire *twi) {
     Serial.println("reading data from EEPROM...");
     readDataFromEEPROM();
+    // init display with passed I²C connection
+    this->display = Adafruit_SSD1306(128, 64, twi);
+    if(!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
+        Serial.println(F("SSD1306 allocation failed.\nProgram execution will halt (Is the display connected correctly? Are large vars stored in Flash memory (full RAM causes I²C to 'time out')?)"));
+        for(;;); // Don't proceed, loop forever
+    }
     Serial.println("done reading data from EEPROM");
 }
 
@@ -162,4 +180,47 @@ void Tamagotchi::writeToEEPROM(int address, int value) {
 
 void Tamagotchi::readBatteryLevel() {
 
+}
+
+/**
+ * @brief displays the face
+ * 
+ * @param index - the index of the face. see [enum_faces]
+ */
+void Tamagotchi::displayFace(unsigned int index) {
+    // if we're already displaying the face, leave it that way
+    if(this->display_index == index) return;
+
+    this->display.clearDisplay();
+
+    // because enum is scoped, it's not easily converted to int
+    // best way is to cast index to enum_faces. see https://stackoverflow.com/questions/26768252/switching-on-scoped-enum
+    switch (static_cast<enum_faces>(index)) {
+        case enum_faces::happy: {
+            display.drawBitmap(0,0, FACE_HAPPY, 128, 64, 1);
+            break;
+        }
+        case enum_faces::neutral: {
+            display.drawBitmap(0,0, FACE_NEUTRAL, 128, 64, 1);
+            break;
+        }
+        case enum_faces::sad: {
+            display.drawBitmap(0,0, FACE_SAD, 128, 64, 1);
+            break;
+        }
+        case enum_faces::awake: {
+            display.drawBitmap(0,0, FACE_AWAKE, 128, 64, 1);
+            break;
+        }
+        case enum_faces::sleepy: {
+            display.drawBitmap(0,0, FACE_SLEEPY, 128, 64, 1);
+            break;
+        }
+        case enum_faces::hungry: {
+            display.drawBitmap(0,0, FACE_HUNGRY, 128, 64, 1);
+            break;
+        }
+    }
+    // flush buffer and display data
+    this->display.display();
 }
