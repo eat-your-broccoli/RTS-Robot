@@ -20,7 +20,9 @@ unsigned int timer_three_minutes = 3 * 60;
 // clear timer every 10 minutes
 unsigned int timer_counter_max = 60 * 10;
 
-#define MAX_SERVOS = 4
+#define MAX_SERVOS  4
+
+#define BUTTON_PIN 18
 
 void setup()
 {
@@ -33,8 +35,13 @@ void setup()
   myTamagotchi.init();
   setupTimers();
   wdt_enable(WDTO_2S);
-}
 
+    pinMode(BUTTON_PIN, INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(BUTTON_PIN), interruptButton, RISING  );
+}
+void interruptButton(){
+  myTamagotchi.setIsFedFlag();
+}
 void loop()
 {
   //put your main code here, to run repeatedly :

@@ -20,7 +20,6 @@
 #define DEFAULT_HUNGER 80
 #define DEFAULT_AFFECTION 20
 
-
 /**
  * @brief Tamagotchi class
  * 
@@ -89,18 +88,25 @@ void Tamagotchi::loop() {
         c++;
         // TODO read battery level
         // TODO convert battery level to sleepyness
+           // reset flags
+    this->flag_read_battery = 0;
     }
 
     if(this->flag_is_fed) {
+         Serial.println("feeding");
         c++;
         // TODO decrease hunger
         // TODO display feeding symbol
+          // reset flags
+        this->flag_is_fed = 0;
     }
 
     if(this->flag_is_pet) {
         c++;
         // TODO increase affection
         // TODO display happy symbol
+          // reset flags
+    this->flag_is_pet = 0;
     }
 
     if(c > 0) {
@@ -110,10 +116,8 @@ void Tamagotchi::loop() {
 
     }
     
-    // reset flags
-    this->flag_is_pet = 0;
-    this->flag_is_fed = 0;
-    this->flag_read_battery = 0;
+  
+   
 }
 
 /**
@@ -164,4 +168,8 @@ void Tamagotchi::writeToEEPROM(int address, int value) {
 
 void Tamagotchi::readBatteryLevel() {
 
+}
+void Tamagotchi::setIsFedFlag(){
+    Serial.println("Button Click detected");
+    this->flag_is_fed = 1;
 }

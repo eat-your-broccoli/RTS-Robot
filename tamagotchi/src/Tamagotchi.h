@@ -13,12 +13,15 @@ class Tamagotchi {
     volatile byte flag_is_pet;
     volatile byte flag_is_fed;
     volatile byte flag_read_battery;
+    volatile byte flag_button;
+
 
     public:
     Tamagotchi();
     void init();
     void onTick();
     void loop();
+    void setIsFedFlag();
 
     private:
     void writeDataToEEPROM();
@@ -26,6 +29,7 @@ class Tamagotchi {
     void readDataFromEEPROM();
     void readBatteryLevel();
     void debug(String s);
+    
 };
 
 extern Tamagotchi myTamagotchi;
