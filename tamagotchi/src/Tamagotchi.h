@@ -8,6 +8,21 @@
 #define SCREEN_ADDRESS 0x3C
 #endif
 
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 64
+
+
+// class because we don't want to pollute namespace. see #3 in https://www.modernescpp.com/index.php/c-core-guidelines-rules-for-enumerations
+enum class enum_face {
+    init, // display won't update when new index == oldIndex. init is used to prevent this from happening
+    happy,
+    neutral,
+    sad,
+    awake,
+    sleepy,
+    hungry
+};
+
 class Tamagotchi {
     private:
     volatile int affection;
@@ -20,6 +35,7 @@ class Tamagotchi {
     volatile byte flag_is_pet;
     volatile byte flag_is_fed;
     volatile byte flag_read_battery;
+    volatile byte flag_update_display;
 
     // SSD1306 display 
     // reference to the display itself
@@ -27,7 +43,7 @@ class Tamagotchi {
 
     // dispaly vars
     // index of the face that is displayed
-    unsigned int display_index;
+    enum_face display_index = enum_face::init;
 
     public:
     Tamagotchi();
@@ -41,7 +57,8 @@ class Tamagotchi {
     void readDataFromEEPROM();
     void readBatteryLevel();
     void debug(String s);
-    void displayFace(unsigned int index);
+    void displayFace(enum_face index);
+    void setDisplayFace(enum_face index, byte priority);
 };
 
 extern Tamagotchi myTamagotchi;

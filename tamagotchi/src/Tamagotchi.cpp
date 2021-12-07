@@ -21,20 +21,6 @@
 #define DEFAULT_HUNGER 80
 #define DEFAULT_AFFECTION 20
 
-// 6 faces
-#define FACE_COUNT 6
-
-// IF ENTRIES ARE ADDED, UPDATE THE FACE_COUNT!!!
-// class because we don't want to pollute namespace. see #3 in https://www.modernescpp.com/index.php/c-core-guidelines-rules-for-enumerations
-enum class enum_faces {
-  happy,
-  neutral,
-  sad,
-  awake,
-  sleepy,
-  hungry
-};
-
 /**
  * @brief Tamagotchi class
  * 
@@ -126,10 +112,15 @@ void Tamagotchi::loop() {
 
     }
     
+
+    if(this->flag_update_display) {
+        displayFace(this->display_index);
+    }
     // reset flags
     this->flag_is_pet = 0;
     this->flag_is_fed = 0;
     this->flag_read_battery = 0;
+    this->flag_update_display = 0;
 }
 
 /**
@@ -184,43 +175,64 @@ void Tamagotchi::readBatteryLevel() {
 
 /**
  * @brief displays the face
+ * NOTE: DO NOT CALL THIS METHOD DIRECTLY
+ * NOTE: use setDisplayFace
+ * 
+ * direct method calls may be overwritten in the same cycle, rendering them redundant and wasting processing power
  * 
  * @param index - the index of the face. see [enum_faces]
  */
-void Tamagotchi::displayFace(unsigned int index) {
+void Tamagotchi::displayFace(enum_face index) {
     // if we're already displaying the face, leave it that way
     if(this->display_index == index) return;
 
     this->display.clearDisplay();
 
-    // because enum is scoped, it's not easily converted to int
-    // best way is to cast index to enum_faces. see https://stackoverflow.com/questions/26768252/switching-on-scoped-enum
-    switch (static_cast<enum_faces>(index)) {
-        case enum_faces::happy: {
-            display.drawBitmap(0,0, FACE_HAPPY, 128, 64, 1);
+    switch (index) {
+        // we're mapping init case to to happy
+        case enum_face::init: {
+            display.drawBitmap(0,0, FACE_HAPPY, SCREEN_WIDTH, SCREEN_HEIGHT, 1);
             break;
         }
-        case enum_faces::neutral: {
-            display.drawBitmap(0,0, FACE_NEUTRAL, 128, 64, 1);
+        case enum_face::happy: {
+            display.drawBitmap(0,0, FACE_HAPPY, SCREEN_WIDTH, SCREEN_HEIGHT, 1);
             break;
         }
-        case enum_faces::sad: {
-            display.drawBitmap(0,0, FACE_SAD, 128, 64, 1);
+        case enum_face::neutral: {
+            display.drawBitmap(0,0, FACE_NEUTRAL, SCREEN_WIDTH, SCREEN_HEIGHT, 1);
             break;
         }
-        case enum_faces::awake: {
-            display.drawBitmap(0,0, FACE_AWAKE, 128, 64, 1);
+        case enum_face::sad: {
+            display.drawBitmap(0,0, FACE_SAD, SCREEN_WIDTH, SCREEN_HEIGHT, 1);
             break;
         }
-        case enum_faces::sleepy: {
-            display.drawBitmap(0,0, FACE_SLEEPY, 128, 64, 1);
+        case enum_face::awake: {
+            display.drawBitmap(0,0, FACE_AWAKE, SCREEN_WIDTH, SCREEN_HEIGHT, 1);
             break;
         }
-        case enum_faces::hungry: {
-            display.drawBitmap(0,0, FACE_HUNGRY, 128, 64, 1);
+        case enum_face::sleepy: {
+            display.drawBitmap(0,0, FACE_SLEEPY, SCREEN_WIDTH, SCREEN_HEIGHT, 1);
+            break;
+        }
+        case enum_face::hungry: {
+            display.drawBitmap(0,0, FACE_HUNGRY, SCREEN_WIDTH, SCREEN_HEIGHT, 1);
             break;
         }
     }
     // flush buffer and display data
     this->display.display();
+}
+
+/**
+ * @brief sets the display to a certain face
+ * NOTE: ONLY SETS if has higher priority
+ * 
+ * @param index the face that is to be displayed
+ * @param priority the priority of the face
+ */
+void Tamagotchi::setDisplayFace(enum_face index, byte priority) {
+    if(priority > this->flag_update_display) {
+        this->flag_update_display = priority;
+        this->display_index = index;
+    }
 }
