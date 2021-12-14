@@ -107,6 +107,8 @@ void Tamagotchi::loop() {
         Serial.print("Sleepyness: "); Serial.println(this->sleepyness);
 
     }
+
+    
     
     // reset flags
     this->flag_is_pet = 0;
@@ -162,4 +164,31 @@ void Tamagotchi::writeToEEPROM(int address, int value) {
 
 void Tamagotchi::readBatteryLevel() {
 
+}
+
+/**
+ * @brief handles organic movement
+ * 
+ * 
+ * what is a instruction set? a instruction consist of an action 
+ * like moving, turning, ... and a timespan during which the instruction has to be done
+ */
+void Tamagotchi::organicMovement() {
+    // check if last other action was at least n seconds in the past
+
+    // check if obstacle is present
+    // if yes, stop. Turn a bit
+
+    // check if already moving organically
+    // if no, choose random instruction set
+
+    // if instruction set action 
+}
+
+void Tamagotchi::stopOrganicMovement() {
+    // stop movement
+    // stop servos
+    // reset cooldown
+    // clear loaded instruction set
+    // clear instruction set 
 }

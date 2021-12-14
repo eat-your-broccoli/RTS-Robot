@@ -26,6 +26,8 @@ class Tamagotchi {
     void readDataFromEEPROM();
     void readBatteryLevel();
     void debug(String s);
+    void organicMovement();
+    void stopOrganicMovement();
 };
 
 extern Tamagotchi myTamagotchi;
