@@ -22,6 +22,8 @@
 #define DEFAULT_HUNGER 80
 #define DEFAULT_AFFECTION 20
 
+#define VOLT_SMOOTHING 0.2
+
 DeviceDriverSet_Voltage AppVoltage2;
 
 /**
@@ -45,6 +47,12 @@ void Tamagotchi::init() {
     Serial.println("reading data from EEPROM...");
     readDataFromEEPROM();
     Serial.println("done reading data from EEPROM");
+
+       
+    Serial.println("init AppVoltage ...");
+    AppVoltage2.DeviceDriverSet_Voltage_Init();
+    this->smoothedVolt = readBatteryLevel();
+    Serial.println("done init AppVoltage");
 }
 
 /**
@@ -95,28 +103,11 @@ void Tamagotchi::loop() {
     if(this->flag_read_battery) {
         c++;
         // TODO read battery level
-        { /*Battery voltage status update*/
-            static unsigned long VoltageData_time = 0;
-            static int flag_read_battery = 1;
-            if (millis() - VoltageData_time > 10) //read and update the data per 10ms
-            {
-                 VoltageData_time = millis();
-                 VoltageData_V = AppVoltage2.DeviceDriverSet_Voltage_getAnalogue();
-            if (VoltageData_V < VoltageDetection)
-            {
-                flag_read_battery++;
-            if (flag_read_battery == 500) //Continuity to judge the latest voltage value multiple 
-            {
-                VoltageDetectionStatus = true;
-                flag_read_battery = 0;
-            }
-        }
-                 else
-                {
-                    VoltageDetectionStatus = false;
-                }
-            }
-        }
+        float batteryLevel = readBatteryLevel();
+        this->smoothedVolt = this->smoothedVolt * (1 - VOLT_SMOOTHING) + (VOLT_SMOOTHING * batteryLevel);
+        // Serial.print("battery = ");
+        // Serial.println(batteryLevel);
+        this->flag_read_battery = 0;
         // TODO convert battery level to sleepyness
     }
 
@@ -191,6 +182,12 @@ void Tamagotchi::writeToEEPROM(int address, int value) {
     EEPROM.update(address, value);
 }
 
-void Tamagotchi::readBatteryLevel() {
-
+/**
+ * @brief reads battery level
+ * this was taken from ApplicationFunctionSet_xxx0.cpp
+ */
+float Tamagotchi::readBatteryLevel() {
+    float Voltage = (analogRead(PIN_Voltage) * 0.0375);
+    Voltage = Voltage + (Voltage * 0.08); //Compensation 8%
+    return Voltage;
 }

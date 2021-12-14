@@ -6,6 +6,7 @@ class Tamagotchi {
     volatile int affection;
     volatile int hunger;
     volatile int sleepyness;
+    float smoothedVolt;
     unsigned int tickCounter;
     volatile float VoltageData_V;        //Battery Voltage Value
     const float VoltageDetection = 7.00;
@@ -29,7 +30,7 @@ class Tamagotchi {
     void writeDataToEEPROM();
     void writeToEEPROM(int address, int value);
     void readDataFromEEPROM();
-    void readBatteryLevel();
+    float readBatteryLevel();
     void debug(String s);
 };
 
