@@ -1,5 +1,6 @@
 #include <avr/interrupt.h>
 #include "Arduino.h"
+#include "UltrasonicSensor.h"
 
 class Tamagotchi {
     private:
@@ -7,6 +8,15 @@ class Tamagotchi {
     volatile int hunger;
     volatile int sleepyness;
     unsigned int tickCounter;
+
+    // when was last action done (petting, feeding, sleeping)
+    unsigned long ts_move_cooldown; 
+    // is robot currently moving organically?
+    int isOrganicMovement = 0;
+    // when started last movement instruction?
+    unsigned long ts_move_instruction = 0;
+    // which instruction set currently is used
+    int move_instructionIndex = 0;
 
     // volatile because compiler should not optimize them
     volatile byte flag_save;

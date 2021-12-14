@@ -20,6 +20,8 @@
 #define DEFAULT_HUNGER 80
 #define DEFAULT_AFFECTION 20
 
+// organic movement 
+#define MOVE_ACTION_COOLDOWN 3000 // 3000 ms = 3sec
 
 /**
  * @brief Tamagotchi class
@@ -31,6 +33,7 @@
 
 
 Tamagotchi myTamagotchi;
+//DeviceDriverSet_ULTRASONIC AppULTRASONIC;
 
 Tamagotchi::Tamagotchi() {
     this->sleepyness = 50;
@@ -42,6 +45,8 @@ void Tamagotchi::init() {
     Serial.println("reading data from EEPROM...");
     readDataFromEEPROM();
     Serial.println("done reading data from EEPROM");
+
+    myUltrasonicSensor.init();
 }
 
 /**
@@ -174,12 +179,29 @@ void Tamagotchi::readBatteryLevel() {
  * like moving, turning, ... and a timespan during which the instruction has to be done
  */
 void Tamagotchi::organicMovement() {
+    unsigned long time = millis();
     // check if last other action was at least n seconds in the past
-
+    if(time - this->ts_move_cooldown < MOVE_ACTION_COOLDOWN) {
+        // wait until enough time has passed
+        return;
+    }
     // check if obstacle is present
     // if yes, stop. Turn a bit
+    uint16_t dist = myUltrasonicSensor.read();
+    // if ultrasonic sensor detects obstacle within 20cm of range
+    if(dist >= 0 && dist <= 20) {
+        // TODO turn around
+        // return
+    }
 
-    // check if already moving organically
+    // check if not already moving organically
+    if(this->isOrganicMovement == 0) {
+        // TODO choose instruction set
+    }
+
+    // TODO 
+    // check is instruction set is loaded
+
     // if no, choose random instruction set
 
     // if instruction set action 
