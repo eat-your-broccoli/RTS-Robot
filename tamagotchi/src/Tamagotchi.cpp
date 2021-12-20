@@ -22,6 +22,7 @@
 
 // organic movement 
 #define MOVE_ACTION_COOLDOWN 3000 // 3000 ms = 3sec
+#define MOVE_UNBLOCK_COOLDOWN 1000 // 1000ms = 1sec
 
 /**
  * @brief Tamagotchi class
@@ -47,6 +48,7 @@ void Tamagotchi::init() {
     Serial.println("done reading data from EEPROM");
 
     myUltrasonicSensor.init();
+    myEngine.init();
 }
 
 /**
@@ -179,9 +181,11 @@ void Tamagotchi::readBatteryLevel() {
  * like moving, turning, ... and a timespan during which the instruction has to be done
  */
 void Tamagotchi::organicMovement() {
+
     unsigned long time = millis();
     // check if last other action was at least n seconds in the past
-    if(time - this->ts_move_cooldown < MOVE_ACTION_COOLDOWN) {
+    if(this->isOrganicMovement == false &&
+     (time < this->ts_move_cooldown || (time - this->ts_move_cooldown) < MOVE_ACTION_COOLDOWN)) {
         // wait until enough time has passed
         return;
     }
@@ -189,28 +193,73 @@ void Tamagotchi::organicMovement() {
     // if yes, stop. Turn a bit
     uint16_t dist = myUltrasonicSensor.read();
     // if ultrasonic sensor detects obstacle within 20cm of range
-    if(dist >= 0 && dist <= 20) {
+    if(this->isMovementBlocked || (dist >= 0 && dist <= 20)) {
+        // TODO stop
+        myEngine.stop();
+        this->ts_move_instruction = time;
+        findUnblockedDirection();
+        return;
         // TODO turn around
         // return
     }
+    this->isMovementBlocked = false;
 
     // check if not already moving organically
     if(this->isOrganicMovement == 0) {
-        // TODO choose instruction set
+        // reset instruction set if it was not properly resetted
+        this->move_instructionSet = -1;
+        this->isOrganicMovement = 1;
     }
 
-    // TODO 
-    // check is instruction set is loaded
+    if(this->move_instructionSet == -1) {
+        // TODO 
+        // check is instruction set is loaded
 
-    // if no, choose random instruction set
+        // if not, choose random instruction set 
+        this->move_instructionSet = 1;
+    }
 
-    // if instruction set action 
+    // execute instruction set
+    if(this->move_instructionSet == 1) {
+        // TODO hardcoded for one instruction
+        myEngine.move(true, 60, true, 60);
+    }
 }
 
 void Tamagotchi::stopOrganicMovement() {
-    // stop movement
-    // stop servos
-    // reset cooldown
-    // clear loaded instruction set
-    // clear instruction set 
+    myEngine.stop();
+    this->isOrganicMovement = 0;
+    this->move_instructionIndex = 0;
+    this->move_instructionSet = -1;
+}
+
+/**
+ * @brief turns around and finds a direction that is not blocked by an obstacle
+ * 
+ */
+void Tamagotchi::findUnblockedDirection() {
+    unsigned long time = millis();
+    // TODO logic for finding open path
+    // look left 
+
+    // look right
+
+    // if none found 
+    // start spinning
+
+    // if one second has passed stop and make measurement
+    // (or if timer overflow occured)
+    if(time < ts_move_cooldown || (time - this->ts_move_instruction) > MOVE_UNBLOCK_COOLDOWN) {
+        myEngine.stop();
+        uint16_t dist = myUltrasonicSensor.read();
+        // if ultrasonic sensor detects obstacle within 20cm of range
+        if(dist >= 0 && dist <= 20) {
+            // rest cooldown to start moving again
+           this->ts_move_cooldown = time;
+        } else {
+            this->isMovementBlocked = false;
+        }
+    } else {
+        myEngine.turn(true, 30);
+    }    
 }
