@@ -22,7 +22,7 @@ unsigned int timer_counter_max = 60 * 10;
 
 #define MAX_SERVOS  4
 
-#define BUTTON_PIN 18
+#define PIN_FEEDING_BUTTON 18
 
 void setup()
 {
@@ -36,12 +36,14 @@ void setup()
   setupTimers();
   wdt_enable(WDTO_2S);
 
-    pinMode(BUTTON_PIN, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(BUTTON_PIN), interruptButton, RISING  );
+  pinMode(PIN_FEEDING_BUTTON, INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(PIN_FEEDING_BUTTON), interruptFeedingButton, RISING);
 }
-void interruptButton(){
+
+void interruptFeedingButton(){
   myTamagotchi.setIsFedFlag();
 }
+
 void loop()
 {
   //put your main code here, to run repeatedly :

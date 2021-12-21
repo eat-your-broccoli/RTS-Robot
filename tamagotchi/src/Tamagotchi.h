@@ -8,7 +8,6 @@ private:
     volatile int hunger;
     volatile int sleepyness;
     unsigned int tickCounter;
-    unsigned long feedingCooldown;
     unsigned long previousMillisFeeding;
 
     // volatile because compiler should not optimize them

@@ -20,6 +20,9 @@
 #define DEFAULT_HUNGER 80
 #define DEFAULT_AFFECTION 20
 
+// feeding cooldown
+#define FEEDING_COOLDOWN 10000 // 10 seconds
+
 /**
  * @brief Tamagotchi class
  * 
@@ -35,7 +38,6 @@ Tamagotchi::Tamagotchi()
     this->sleepyness = 50;
     this->hunger = 50;
     this->affection = 20;
-    this->feedingCooldown = 300000;  //5 minutes in millis as a cooldown for the feeding button
     this->previousMillisFeeding = 0; // will store last time robot was fed
 };
 
@@ -93,12 +95,12 @@ void Tamagotchi::onTick()
  */
 void Tamagotchi::loop()
 {
-    int c = 0;
+    int hasAnythingChanged = 0;
     unsigned long currentMillis = millis();
 
     if (this->flag_read_battery)
     {
-        c++;
+        hasAnythingChanged++;
         // TODO read battery level
         // TODO convert battery level to sleepyness
         // reset flags
@@ -107,12 +109,13 @@ void Tamagotchi::loop()
 
     if (this->flag_is_fed)
     {
-        if (currentMillis - previousMillisFeeding >= feedingCooldown || previousMillisFeeding == 0)
+        
+        if ((currentMillis - previousMillisFeeding >= FEEDING_COOLDOWN) || previousMillisFeeding == 0 || currentMillis < previousMillisFeeding)
         {
             // save the last time you fed
             previousMillisFeeding = currentMillis;
             Serial.println("feeding");
-            c++;
+            hasAnythingChanged++;
             // Decrease hunger
             if (this->hunger < 20)
             {
@@ -122,7 +125,7 @@ void Tamagotchi::loop()
             else
             {
                 this->hunger = this->hunger - 20;
-                Serial.println((String) "Feeding... Hunger at: " + this->hunger);
+                Serial.print("Feeding... Hunger at: "); Serial.println(this->hunger);
             }
             // TODO display feeding symbol
         }
@@ -132,14 +135,14 @@ void Tamagotchi::loop()
 
     if (this->flag_is_pet)
     {
-        c++;
+        hasAnythingChanged++;
         // TODO increase affection
         // TODO display happy symbol
         // reset flags
         this->flag_is_pet = 0;
     }
 
-    if (c > 0)
+    if (hasAnythingChanged > 0)
     {
         Serial.print("Hunger: ");
         Serial.println(this->hunger);
@@ -211,6 +214,7 @@ void Tamagotchi::writeToEEPROM(int address, int value)
 void Tamagotchi::readBatteryLevel()
 {
 }
+
 void Tamagotchi::setIsFedFlag()
 {
     Serial.println("Button Click detected");
