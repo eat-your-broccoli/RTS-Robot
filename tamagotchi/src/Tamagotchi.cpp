@@ -115,6 +115,7 @@ void Tamagotchi::loop() {
 
     }
 
+    organicMovement();
     
     
     // reset flags
@@ -194,6 +195,7 @@ void Tamagotchi::organicMovement() {
     uint16_t dist = myUltrasonicSensor.read();
     // if ultrasonic sensor detects obstacle within 20cm of range
     if(this->isMovementBlocked || (dist >= 0 && dist <= 20)) {
+        Serial.println("movement is blocked");
         // TODO stop
         myEngine.stop();
         this->ts_move_instruction = time;
@@ -222,7 +224,7 @@ void Tamagotchi::organicMovement() {
     // execute instruction set
     if(this->move_instructionSet == 1) {
         // TODO hardcoded for one instruction
-        myEngine.move(true, 60, true, 60);
+        myEngine.move(1, 60, 1, 60);
     }
 }
 
@@ -250,6 +252,7 @@ void Tamagotchi::findUnblockedDirection() {
     // if one second has passed stop and make measurement
     // (or if timer overflow occured)
     if(time < ts_move_cooldown || (time - this->ts_move_instruction) > MOVE_UNBLOCK_COOLDOWN) {
+        Serial.println("Find unblocking");
         myEngine.stop();
         uint16_t dist = myUltrasonicSensor.read();
         // if ultrasonic sensor detects obstacle within 20cm of range

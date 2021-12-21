@@ -12,19 +12,19 @@ void EngineControl::init() {
 }
 
 void EngineControl::stop() {
-    move(true, 0, true, 0);
+    move(3, 0, 3, 0);
 }
 
-void EngineControl::move(bool dirA, uint8_t speedA, bool dirB, uint8_t speedB) {
+void EngineControl::move(uint8_t dirA, uint8_t speedA, uint8_t dirB, uint8_t speedB) {
     digitalWrite(PIN_Motor_STBY, HIGH);
     
     // motor group A
     switch (dirA) {
-        case true: 
+        case 1: 
             digitalWrite(PIN_Motor_AIN_1, HIGH); 
             analogWrite(PIN_Motor_PWMA, speedA);
             break;
-        case false: 
+        case 2: 
             digitalWrite(PIN_Motor_AIN_1, LOW);
             analogWrite(PIN_Motor_PWMA, speedA);
             break;
@@ -35,11 +35,11 @@ void EngineControl::move(bool dirA, uint8_t speedA, bool dirB, uint8_t speedB) {
 
     // motor group B
     switch (dirB) {
-        case true: 
+        case 1: 
             digitalWrite(PIN_Motor_BIN_1, HIGH); 
             analogWrite(PIN_Motor_PWMB, speedB);
             break;
-        case false: 
+        case 2: 
             digitalWrite(PIN_Motor_BIN_1, LOW);
             analogWrite(PIN_Motor_PWMB, speedB);
             break;
@@ -50,5 +50,7 @@ void EngineControl::move(bool dirA, uint8_t speedA, bool dirB, uint8_t speedB) {
 }
 
 void EngineControl::turn(bool isRight, uint8_t speed) {
-    move(isRight, speed, !isRight, speed);
+    if(isRight == 1) move(1, speed, 2, speed);
+    else move(2, speed, 1, speed);
+
 }
