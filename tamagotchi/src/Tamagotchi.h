@@ -1,8 +1,9 @@
 #include <avr/interrupt.h>
 #include "Arduino.h"
 
-class Tamagotchi {
-    private:
+class Tamagotchi
+{
+private:
     volatile int affection;
     volatile int hunger;
     volatile int sleepyness;
@@ -12,21 +13,24 @@ class Tamagotchi {
     const float VoltageDetection = 7.00;
     boolean VoltageDetectionStatus = false;
     
+    unsigned long previousMillisFeeding;
 
     // volatile because compiler should not optimize them
     volatile byte flag_save;
     volatile byte flag_is_pet;
     volatile byte flag_is_fed;
     volatile byte flag_read_battery;
+    volatile byte flag_button;
 
-    public:
+public:
     Tamagotchi();
     void init();
     void onTick();
     void loop();
     void setup();
+    void setIsFedFlag();
 
-    private:
+private:
     void writeDataToEEPROM();
     void writeToEEPROM(int address, int value);
     void readDataFromEEPROM();
