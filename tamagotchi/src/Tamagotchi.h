@@ -31,6 +31,7 @@ class Tamagotchi {
     void writeToEEPROM(int address, int value);
     void readDataFromEEPROM();
     float readBatteryLevel();
+    uint8_t convertVoltToSleepyness(float voltage);
     void debug(String s);
 };
 

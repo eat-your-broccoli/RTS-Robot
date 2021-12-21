@@ -23,6 +23,9 @@
 #define DEFAULT_AFFECTION 20
 
 #define VOLT_SMOOTHING 0.2
+#define VOLT_BATTERY_UPPER_LIMIT 7.0
+#define VOLT_BATTERY_LOWER_LIMIT 5.0
+
 
 DeviceDriverSet_Voltage AppVoltage2;
 
@@ -66,7 +69,7 @@ void Tamagotchi::onTick() {
 
     // if the tick counter is not a multiple of 10 seconds return immediately
     // this way further evaluations only have to be done every 10 seconds
-    if(tickCounter % 10 != 0) return;
+    if(tickCounter % 1 != 0) return;
 
     // this code will execute every 10 seconds
     // Serial.println("Hello every 10 seconds")
@@ -102,11 +105,14 @@ void Tamagotchi::loop() {
 
     if(this->flag_read_battery) {
         c++;
-        // TODO read battery level
         float batteryLevel = readBatteryLevel();
         this->smoothedVolt = this->smoothedVolt * (1 - VOLT_SMOOTHING) + (VOLT_SMOOTHING * batteryLevel);
-        // Serial.print("battery = ");
-        // Serial.println(batteryLevel);
+        this->sleepyness = convertVoltToSleepyness(this->smoothedVolt);
+        Serial.print("battery = ");
+        Serial.println(batteryLevel);
+        Serial.print("sleepyness = ");
+        Serial.println(sleepyness);
+        
         this->flag_read_battery = 0;
         // TODO convert battery level to sleepyness
     }
@@ -184,10 +190,15 @@ void Tamagotchi::writeToEEPROM(int address, int value) {
 
 /**
  * @brief reads battery level
- * this was taken from ApplicationFunctionSet_xxx0.cpp
  */
 float Tamagotchi::readBatteryLevel() {
     float Voltage = (analogRead(PIN_Voltage) * 0.0375);
     Voltage = Voltage + (Voltage * 0.08); //Compensation 8%
     return Voltage;
+}
+
+uint8_t Tamagotchi::convertVoltToSleepyness(float voltage) {
+    if(voltage > VOLT_BATTERY_UPPER_LIMIT) return 100;
+    if(voltage < VOLT_BATTERY_LOWER_LIMIT) return 0;
+    return (uint8_t) (((voltage - VOLT_BATTERY_LOWER_LIMIT) / (VOLT_BATTERY_UPPER_LIMIT - VOLT_BATTERY_LOWER_LIMIT)) * 100);
 }
