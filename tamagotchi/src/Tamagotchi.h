@@ -23,12 +23,19 @@ enum class enum_face {
     hungry
 };
 
-class Tamagotchi {
-    private:
+class Tamagotchi
+{
+private:
     volatile int affection;
     volatile int hunger;
     volatile int sleepyness;
+    float smoothedVolt;
     unsigned int tickCounter;
+    volatile float VoltageData_V;        //Battery Voltage Value
+    const float VoltageDetection = 7.00;
+    boolean VoltageDetectionStatus = false;
+    
+    unsigned long previousMillisFeeding;
 
     // volatile because compiler should not optimize them
     volatile byte flag_save;
@@ -44,18 +51,22 @@ class Tamagotchi {
     // dispaly vars
     // index of the face that is displayed
     enum_face display_index = enum_face::init;
+    volatile byte flag_button;
 
-    public:
+public:
     Tamagotchi();
     void init(TwoWire *twi);
     void onTick();
     void loop();
+    void setup();
+    void setIsFedFlag();
 
-    private:
+private:
     void writeDataToEEPROM();
     void writeToEEPROM(int address, int value);
     void readDataFromEEPROM();
-    void readBatteryLevel();
+    float readBatteryLevel();
+    uint8_t convertVoltToSleepyness(float voltage);
     void debug(String s);
     void displayFace(enum_face index);
     void setDisplayFace(enum_face index, byte priority);
