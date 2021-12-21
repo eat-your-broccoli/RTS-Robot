@@ -1,6 +1,8 @@
 #include "Tamagotchi.h"
 #include <EEPROM.h>
 
+#include "DeviceDriverSet_xxx0.h"
+
 #ifndef DEBUG
 // comment next line out if you don't want debug messages
 // #define DEBUG
@@ -20,6 +22,12 @@
 #define DEFAULT_HUNGER 80
 #define DEFAULT_AFFECTION 20
 
+#define VOLT_SMOOTHING 0.2
+#define VOLT_BATTERY_UPPER_LIMIT 7.0
+#define VOLT_BATTERY_LOWER_LIMIT 5.0
+
+
+DeviceDriverSet_Voltage AppVoltage2;
 // feeding cooldown
 #define FEEDING_COOLDOWN 10000 // 10 seconds
 
@@ -46,6 +54,12 @@ void Tamagotchi::init()
     Serial.println("reading data from EEPROM...");
     readDataFromEEPROM();
     Serial.println("done reading data from EEPROM");
+
+       
+    Serial.println("init AppVoltage ...");
+    pinMode(PIN_Voltage, INPUT);
+    this->smoothedVolt = readBatteryLevel();
+    Serial.println("done init AppVoltage");
 }
 
 /**
@@ -61,8 +75,7 @@ void Tamagotchi::onTick()
 
     // if the tick counter is not a multiple of 10 seconds return immediately
     // this way further evaluations only have to be done every 10 seconds
-    if (tickCounter % 10 != 0)
-    {
+    if (tickCounter % 10 != 0) {
         return;
     }
 
@@ -89,10 +102,6 @@ void Tamagotchi::onTick()
     }
 }
 
-/**
- * @brief executed on every loop of the main program
- * 
- */
 void Tamagotchi::loop()
 {
     int hasAnythingChanged = 0;
@@ -101,9 +110,14 @@ void Tamagotchi::loop()
     if (this->flag_read_battery)
     {
         hasAnythingChanged++;
-        // TODO read battery level
-        // TODO convert battery level to sleepyness
-        // reset flags
+        float batteryLevel = readBatteryLevel();
+        this->smoothedVolt = this->smoothedVolt * (1 - VOLT_SMOOTHING) + (VOLT_SMOOTHING * batteryLevel);
+        this->sleepyness = convertVoltToSleepyness(this->smoothedVolt);
+        Serial.print("battery = ");
+        Serial.println(batteryLevel);
+        Serial.print("sleepyness = ");
+        Serial.println(sleepyness);
+        
         this->flag_read_battery = 0;
     }
 
@@ -211,8 +225,19 @@ void Tamagotchi::writeToEEPROM(int address, int value)
     EEPROM.update(address, value);
 }
 
-void Tamagotchi::readBatteryLevel()
-{
+/**
+ * @brief reads battery level
+ */
+float Tamagotchi::readBatteryLevel() {
+    float Voltage = (analogRead(PIN_Voltage) * 0.0375);
+    Voltage = Voltage + (Voltage * 0.08); //Compensation 8%
+    return Voltage;
+}
+
+uint8_t Tamagotchi::convertVoltToSleepyness(float voltage) {
+    if(voltage > VOLT_BATTERY_UPPER_LIMIT) return 100;
+    if(voltage < VOLT_BATTERY_LOWER_LIMIT) return 0;
+    return (uint8_t) (((voltage - VOLT_BATTERY_LOWER_LIMIT) / (VOLT_BATTERY_UPPER_LIMIT - VOLT_BATTERY_LOWER_LIMIT)) * 100);
 }
 
 void Tamagotchi::setIsFedFlag()

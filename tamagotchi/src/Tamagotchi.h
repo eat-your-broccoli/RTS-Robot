@@ -7,7 +7,12 @@ private:
     volatile int affection;
     volatile int hunger;
     volatile int sleepyness;
+    float smoothedVolt;
     unsigned int tickCounter;
+    volatile float VoltageData_V;        //Battery Voltage Value
+    const float VoltageDetection = 7.00;
+    boolean VoltageDetectionStatus = false;
+    
     unsigned long previousMillisFeeding;
 
     // volatile because compiler should not optimize them
@@ -22,13 +27,15 @@ public:
     void init();
     void onTick();
     void loop();
+    void setup();
     void setIsFedFlag();
 
 private:
     void writeDataToEEPROM();
     void writeToEEPROM(int address, int value);
     void readDataFromEEPROM();
-    void readBatteryLevel();
+    float readBatteryLevel();
+    uint8_t convertVoltToSleepyness(float voltage);
     void debug(String s);
 };
 
