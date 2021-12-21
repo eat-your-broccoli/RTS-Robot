@@ -37,6 +37,8 @@ private:
     
     unsigned long previousMillisFeeding;
 
+    unsigned long ts_face_update;
+
     // volatile because compiler should not optimize them
     volatile byte flag_save;
     volatile byte flag_is_pet;
@@ -51,6 +53,7 @@ private:
     // dispaly vars
     // index of the face that is displayed
     enum_face display_index = enum_face::init;
+    enum_face display_index_current = enum_face::init;
     volatile byte flag_button;
 
 public:
@@ -69,7 +72,8 @@ private:
     uint8_t convertVoltToSleepyness(float voltage);
     void debug(String s);
     void displayFace(enum_face index);
-    void setDisplayFace(enum_face index, byte priority);
+    void setDisplayFace(enum_face index, uint8_t priority);
+    void chooseFace();
 };
 
 extern Tamagotchi myTamagotchi;
