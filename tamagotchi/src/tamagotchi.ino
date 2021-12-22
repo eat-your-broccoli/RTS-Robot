@@ -18,14 +18,17 @@ unsigned int timer_minute = 60;
 unsigned int timer_three_minutes = 3 * 60;
 
 // clear timer every 10 minutes
-unsigned int timer_counter_max = 60 * 10;
+unsigned int timer_counter_max = 60 * 10;  
 
 #define MAX_SERVOS = 4
+#define BAUD_RATE 9600
 
 void setup()
 {
-  Serial.begin(9600);
-  Serial.println("Serial init at 9600");
+  Serial.begin(BAUD_RATE);
+  Serial.print("Serial init at ");
+  Serial.println(BAUD_RATE);
+  
   // put your setup code here, to run once:
   Application_FunctionSet.ApplicationFunctionSet_Init();
 
@@ -66,25 +69,25 @@ void loop()
  */
 void setupTimers() {
   // a great thank you to https://www.arduinoslovakia.eu/application/timer-calculator
-  cli(); // disable all interrupts
-  TCCR4A = 0;     // set entire TCCR1A register to 0
-  TCCR4B = 0;     // same for TCCR1B
-  // set compare match register to desired timer count:
-  OCR4A = 15624;
+  noInterrupts();
+  // Clear registers
+  TCCR5A = 0;
+  TCCR5B = 0;
+  TCNT5 = 0;
 
-  // turn on CTC mode:
-  TCCR4B |= (1 << WGM42);
-
-  // 1024 prescaler
-  TCCR4B |= (1 << CS42) | (1 << CS40);
-
-  // enable timer compare interrupt:
-  TIMSK4 |= (1 << OCIE4A);
-  sei();
+  // 1 Hz (16000000/((15624+1)*1024))
+  OCR5A = 15624;
+  // CTC
+  TCCR5B |= (1 << WGM52);
+  // Prescaler 1024
+  TCCR5B |= (1 << CS52) | (1 << CS50);
+  // Output Compare Match A Interrupt Enable
+  TIMSK5 |= (1 << OCIE5A);
+  interrupts();
   Serial.println("Setup timer complete");
 }
 
-ISR(TIMER4_COMPA_vect) // timer compare interrupt service routine
+ISR(TIMER5_COMPA_vect) // timer compare interrupt service routine
 {
   myTamagotchi.onTick();
 }

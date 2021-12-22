@@ -22,7 +22,7 @@
 
 // organic movement 
 #define MOVE_ACTION_COOLDOWN 3000 // 3000 ms = 3sec
-#define MOVE_UNBLOCK_COOLDOWN 1000 // 1000ms = 1sec
+#define MOVE_UNBLOCK_COOLDOWN 500 // 1000ms = 1sec
 
 /**
  * @brief Tamagotchi class
@@ -196,13 +196,10 @@ void Tamagotchi::organicMovement() {
     // if ultrasonic sensor detects obstacle within 20cm of range
     if(this->isMovementBlocked || (dist >= 0 && dist <= 20)) {
         Serial.println("movement is blocked");
-        // TODO stop
         myEngine.stop();
-        this->ts_move_instruction = time;
-        findUnblockedDirection();
+        this->ts_move_instruction = 0;
+        // findUnblockedDirection();
         return;
-        // TODO turn around
-        // return
     }
     this->isMovementBlocked = false;
 
@@ -210,7 +207,14 @@ void Tamagotchi::organicMovement() {
     if(this->isOrganicMovement == 0) {
         // reset instruction set if it was not properly resetted
         this->move_instructionSet = -1;
+        this->ts_move_instruction = 0;
         this->isOrganicMovement = 1;
+    }
+
+    if(time - this->ts_move_instruction < 3000) {
+        // do nothing
+        // TODO hardcoded limit that each instruction should be done for 3 sec
+        return;
     }
 
     if(this->move_instructionSet == -1) {
@@ -224,7 +228,8 @@ void Tamagotchi::organicMovement() {
     // execute instruction set
     if(this->move_instructionSet == 1) {
         // TODO hardcoded for one instruction
-        myEngine.move(1, 60, 1, 60);
+        myEngine.move(1, 120, 1, 120);
+        this->ts_move_instruction = time;
     }
 }
 
@@ -251,18 +256,18 @@ void Tamagotchi::findUnblockedDirection() {
 
     // if one second has passed stop and make measurement
     // (or if timer overflow occured)
-    if(time < ts_move_cooldown || (time - this->ts_move_instruction) > MOVE_UNBLOCK_COOLDOWN) {
-        Serial.println("Find unblocking");
-        myEngine.stop();
-        uint16_t dist = myUltrasonicSensor.read();
-        // if ultrasonic sensor detects obstacle within 20cm of range
-        if(dist >= 0 && dist <= 20) {
-            // rest cooldown to start moving again
-           this->ts_move_cooldown = time;
-        } else {
-            this->isMovementBlocked = false;
-        }
-    } else {
-        myEngine.turn(true, 30);
-    }    
+    // if(time < ts_move_cooldown || (time - this->ts_move_cooldown) > MOVE_UNBLOCK_COOLDOWN) {
+    //     Serial.println("Find unblocking :D");
+    //     myEngine.stop();
+    //     uint16_t dist = myUltrasonicSensor.read();
+    //     // if ultrasonic sensor detects obstacle within 20cm of range
+    //     if(dist >= 0 && dist <= 20) {
+    //         // rest cooldown to start moving again
+    //        this->ts_move_cooldown = time;
+    //     } else {
+    //         this->isMovementBlocked = false;
+    //     }
+    // } else {
+        myEngine.turn(true, 120);
+    // }    
 }
