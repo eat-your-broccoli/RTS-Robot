@@ -2,6 +2,8 @@
 #include "Arduino.h"
 #include "UltrasonicSensor.h"
 #include "EngineControl.h"
+#include "ServoControl.h"
+
 
 class Tamagotchi {
     private:
@@ -9,8 +11,14 @@ class Tamagotchi {
     volatile int hunger;
     volatile int sleepyness;
     unsigned int tickCounter;
+
     // if movement is blocked, e.g. obstacle detected by Ultrasonic sensor
     bool isMovementBlocked = false;
+
+    // timestamp for handlich unblocking routine
+    unsigned long ts_blocked;
+
+    unsigned int blocked_instructionIndex;
 
     // when was last action done (petting, feeding, sleeping)
     unsigned long ts_move_cooldown; 

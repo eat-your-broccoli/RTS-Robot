@@ -22,8 +22,10 @@
 
 // organic movement 
 #define MOVE_ACTION_COOLDOWN 3000 // 3000 ms = 3sec
-#define MOVE_UNBLOCK_COOLDOWN 500 // 1000ms = 1sec
+#define MOVE_UNBLOCK_COOLDOWN 2500 // 1000ms = 1sec
 
+
+#define MIN_DISTANCE 20
 /**
  * @brief Tamagotchi class
  * 
@@ -35,6 +37,8 @@
 
 Tamagotchi myTamagotchi;
 //DeviceDriverSet_ULTRASONIC AppULTRASONIC;
+
+uint16_t dist;
 
 Tamagotchi::Tamagotchi() {
     this->sleepyness = 50;
@@ -49,6 +53,7 @@ void Tamagotchi::init() {
 
     myUltrasonicSensor.init();
     myEngine.init();
+    myServo.init();
 }
 
 /**
@@ -192,16 +197,19 @@ void Tamagotchi::organicMovement() {
     }
     // check if obstacle is present
     // if yes, stop. Turn a bit
-    uint16_t dist = myUltrasonicSensor.read();
+    delay(1);
+    dist = myUltrasonicSensor.read();
+    // Serial.print("dist: "); Serial.println(dist);
     // if ultrasonic sensor detects obstacle within 20cm of range
-    if(this->isMovementBlocked || (dist >= 0 && dist <= 20)) {
-        Serial.println("movement is blocked");
-        myEngine.stop();
-        this->ts_move_instruction = 0;
-        // findUnblockedDirection();
+    Serial.println((String) "my distance is "+dist);
+    if((dist > 0 && dist <= MIN_DISTANCE)) {
+        // Serial.println("movement is blocked");
+        findUnblockedDirection();
         return;
     }
+    Serial.println(":D");
     this->isMovementBlocked = false;
+    this->isOrganicMovement = 0;
 
     // check if not already moving organically
     if(this->isOrganicMovement == 0) {
@@ -227,8 +235,9 @@ void Tamagotchi::organicMovement() {
 
     // execute instruction set
     if(this->move_instructionSet == 1) {
+        Serial.println("move, bitch");
         // TODO hardcoded for one instruction
-        myEngine.move(1, 120, 1, 120);
+        myEngine.move(1, 160, 1, 160);
         this->ts_move_instruction = time;
     }
 }
@@ -244,30 +253,114 @@ void Tamagotchi::stopOrganicMovement() {
  * @brief turns around and finds a direction that is not blocked by an obstacle
  * 
  */
+// void Tamagotchi::findUnblockedDirection2() {
+//     unsigned long time = millis();
+//     uint16_t dist = 0;
+
+//     // if previously the movement wasn't blocked, stop the engine to avoid hitting obstacle
+//     if(this->isMovementBlocked == false) {
+//         Serial.println("movement is now blocked");
+//         myEngine.stop();
+//         this->ts_move_instruction = 0;
+//         this->isMovementBlocked = true;
+//         this->ts_blocked = 0; 
+//         this->blocked_instructionIndex = 0;
+//     }
+
+//     // if enough time has passed, we do the next instruction
+//     if(this->ts_blocked == 0 || time < this->ts_blocked || time - this->ts_blocked > MOVE_UNBLOCK_COOLDOWN) {
+//         Serial.println("next step in blocked");
+//         this->blocked_instructionIndex++;
+//         this->blocked_instructionIndex
+//         this->ts_blocked = time;
+//     } else {
+//         return;
+//     }
+
+//     switch(this->blocked_instructionIndex) {
+//         case 1: // look left 
+//             Serial.println("looking left");
+//             myServo.turn(SERVO_CENTER_LEFT);
+//             break;
+//         case 2: // take measurement
+//             dist = myUltrasonicSensor.read();
+//             break;
+//         case 3: // look right
+//             Serial.println("looking right");
+//             myServo.turn(SERVO_CENTER_RIGHT);
+//             break;
+//         case 4: // take measurement
+//             dist = myUltrasonicSensor.read();
+//             break;
+//     }
+
+//     Serial.print("dist: "); Serial.println(dist);
+//     if(dist >= 0 && dist <= MIN_DISTANCE) {
+//         // path still blocked
+//         return;
+//     }
+//     myServo.turn(90);
+//     this->isMovementBlocked = false;
+
+//     // if(this->blocked_instructionIndex == 2) {
+//     //     Serial.println
+//     //     myEngine.turn(false, 90);
+//     // } else {
+//     //     myEngine.turn(true, 90);       
+//     // }
+// }
+
+/**
+ * @brief turns around and finds a direction that is not blocked by an obstacle
+ * 
+ */
 void Tamagotchi::findUnblockedDirection() {
     unsigned long time = millis();
-    // TODO logic for finding open path
-    // look left 
+    uint16_t dist = 0;
 
-    // look right
+    // if previously the movement wasn't blocked, stop the engine to avoid hitting obstacle
+    if(this->isMovementBlocked == false) {
+        Serial.println("movement is now blocked");
+        myEngine.stop();
+        this->ts_move_instruction = 0;
+        this->isMovementBlocked = false;
+        this->ts_blocked = 0; 
+        this->blocked_instructionIndex = 0;
+        delay(50);
+    }
 
-    // if none found 
-    // start spinning
+    dist = myUltrasonicSensor.read();
+    if(dist > MIN_DISTANCE) {
+        Serial.println("road ahead is clear");
+        myServo.reset();
+        myEngine.stop();
+        this->isMovementBlocked = false;
+        return;
+    }
 
-    // if one second has passed stop and make measurement
-    // (or if timer overflow occured)
-    // if(time < ts_move_cooldown || (time - this->ts_move_cooldown) > MOVE_UNBLOCK_COOLDOWN) {
-    //     Serial.println("Find unblocking :D");
-    //     myEngine.stop();
-    //     uint16_t dist = myUltrasonicSensor.read();
-    //     // if ultrasonic sensor detects obstacle within 20cm of range
-    //     if(dist >= 0 && dist <= 20) {
-    //         // rest cooldown to start moving again
-    //        this->ts_move_cooldown = time;
-    //     } else {
-    //         this->isMovementBlocked = false;
-    //     }
-    // } else {
-        myEngine.turn(true, 120);
-    // }    
+    // turn right
+    myServo.turn(SERVO_CENTER_RIGHT);
+    delay(400);
+    dist = myUltrasonicSensor.read();
+    if(dist > MIN_DISTANCE) {
+        Serial.println("road to the right is clear");
+        myServo.reset();
+        myEngine.turn(true, 255);
+        delay(1000);
+        myEngine.stop();
+        this->isMovementBlocked = false;
+        return;
+    }
+    myServo.turn(SERVO_CENTER_LEFT);
+    delay(400);
+    dist = myUltrasonicSensor.read();
+    if(dist > MIN_DISTANCE) {
+        Serial.println("road to the left is clear");
+        myServo.reset();
+        myEngine.turn(false, 255);
+        delay(1000);
+        myEngine.stop();
+        this->isMovementBlocked = false;
+        return;
+    }
 }

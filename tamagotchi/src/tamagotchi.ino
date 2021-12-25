@@ -7,12 +7,13 @@
  * @FilePath: 
  */
 #include <avr/wdt.h>
-#include "ApplicationFunctionSet_xxx0.h"
+// #include "ApplicationFunctionSet_xxx0.h"
 #include "Tamagotchi.h"
+#include "DeviceDriverSet_xxx0.h"
 
 // will be incremented every 1 sec
 volatile unsigned int timer_counter = 0;
-
+unsigned long lastTimestamp = 0;
 unsigned int timer_minute = 60;
 
 unsigned int timer_three_minutes = 3 * 60;
@@ -20,8 +21,9 @@ unsigned int timer_three_minutes = 3 * 60;
 // clear timer every 10 minutes
 unsigned int timer_counter_max = 60 * 10;  
 
-#define MAX_SERVOS = 4
 #define BAUD_RATE 9600
+
+// DeviceDriverSet_Servo serv;
 
 void setup()
 {
@@ -30,11 +32,11 @@ void setup()
   Serial.println(BAUD_RATE);
   
   // put your setup code here, to run once:
-  Application_FunctionSet.ApplicationFunctionSet_Init();
+  // Application_FunctionSet.ApplicationFunctionSet_Init();
 
   // initialize tamagotchi
   myTamagotchi.init();
-  setupTimers();
+  // setupTimers();
   wdt_enable(WDTO_2S);
 }
 
@@ -42,7 +44,11 @@ void loop()
 {
   //put your main code here, to run repeatedly :
   wdt_reset();
+  poorMansTimer();
   myTamagotchi.loop();
+  // myServo.turn(135);
+  // serv.DeviceDriverSet_Servo_control(135);
+  
   // Application_FunctionSet.ApplicationFunctionSet_SensorDataUpdate();
   // Application_FunctionSet.ApplicationFunctionSet_KeyCommand();
   // Application_FunctionSet.ApplicationFunctionSet_RGB();
@@ -71,23 +77,31 @@ void setupTimers() {
   // a great thank you to https://www.arduinoslovakia.eu/application/timer-calculator
   noInterrupts();
   // Clear registers
-  TCCR5A = 0;
-  TCCR5B = 0;
-  TCNT5 = 0;
+  TCCR1A = 0;
+  TCCR1B = 0;
+  TCNT1 = 0;
 
-  // 1 Hz (16000000/((15624+1)*1024))
-  OCR5A = 15624;
+  // 100 Hz (16000000/((624+1)*256))
+  OCR1A = 624;
   // CTC
-  TCCR5B |= (1 << WGM52);
-  // Prescaler 1024
-  TCCR5B |= (1 << CS52) | (1 << CS50);
+  TCCR1B |= (1 << WGM12);
+  // Prescaler 256
+  TCCR1B |= (1 << CS12);
   // Output Compare Match A Interrupt Enable
-  TIMSK5 |= (1 << OCIE5A);
+  TIMSK1 |= (1 << OCIE1A);
   interrupts();
   Serial.println("Setup timer complete");
 }
 
-ISR(TIMER5_COMPA_vect) // timer compare interrupt service routine
-{
-  myTamagotchi.onTick();
+// ISR(TIMER1_COMPA_vect) // timer compare interrupt service routine
+// {
+//   myTamagotchi.onTick();
+// }
+
+void poorMansTimer() {
+  unsigned long time = millis();
+  if(time - lastTimestamp >= 1000) {
+    lastTimestamp = time;
+    myTamagotchi.onTick();
+  }
 }
