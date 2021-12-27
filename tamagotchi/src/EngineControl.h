@@ -8,6 +8,9 @@ class EngineControl {
     void turn(bool isRight, uint8_t speed);
     void stop();
     void turn90deg(bool isRight);
+    void forward(uint8_t speed);
+    void backward(uint8_t speed);
+    
 
     private:
     #define PIN_Motor_PWMA 5

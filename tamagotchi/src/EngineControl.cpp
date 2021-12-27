@@ -70,6 +70,14 @@ void EngineControl::move(uint8_t dirA, uint8_t speedA, uint8_t dirB, uint8_t spe
     
 }
 
+void EngineControl::forward(uint8_t speed) {
+    move(1, speed, 1, speed);
+}
+
+void EngineControl::backward(uint8_t speed) {
+    move(2, speed, 2, speed);
+}
+
 void EngineControl::turn(bool isRight, uint8_t speed) {
     if(isRight == 1) move(2, speed, 1, speed);
     else move(1, speed, 2, speed);
