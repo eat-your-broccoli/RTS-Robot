@@ -30,6 +30,8 @@
 #define SPEED_SLOW 75
 #define SPEED_NORMAL 120
 #define SPEED_FAST 200
+
+#define PIN_RANDOM_INIT A10
 /**
  * @brief Tamagotchi class
  * 
@@ -52,6 +54,9 @@ void Tamagotchi::init() {
     Serial.println("reading data from EEPROM...");
     readDataFromEEPROM();
     Serial.println("done reading data from EEPROM");
+
+    pinMode(PIN_RANDOM_INIT, INPUT);
+    randomSeed(analogRead(PIN_RANDOM_INIT));
 
     myUltrasonicSensor.init();
     myEngine.init();
@@ -255,68 +260,9 @@ void Tamagotchi::stopOrganicMovement() {
 
 /**
  * @brief turns around and finds a direction that is not blocked by an obstacle
- * 
- */
-// void Tamagotchi::findUnblockedDirection2() {
-//     unsigned long time = millis();
-//     uint16_t dist = 0;
-
-//     // if previously the movement wasn't blocked, stop the engine to avoid hitting obstacle
-//     if(this->isMovementBlocked == false) {
-//         Serial.println("movement is now blocked");
-//         myEngine.stop();
-//         this->ts_move_instruction = 0;
-//         this->isMovementBlocked = true;
-//         this->ts_blocked = 0; 
-//         this->blocked_instructionIndex = 0;
-//     }
-
-//     // if enough time has passed, we do the next instruction
-//     if(this->ts_blocked == 0 || time < this->ts_blocked || time - this->ts_blocked > MOVE_UNBLOCK_COOLDOWN) {
-//         Serial.println("next step in blocked");
-//         this->blocked_instructionIndex++;
-//         this->blocked_instructionIndex
-//         this->ts_blocked = time;
-//     } else {
-//         return;
-//     }
-
-//     switch(this->blocked_instructionIndex) {
-//         case 1: // look left 
-//             Serial.println("looking left");
-//             myServo.turn(SERVO_CENTER_LEFT);
-//             break;
-//         case 2: // take measurement
-//             dist = myUltrasonicSensor.read();
-//             break;
-//         case 3: // look right
-//             Serial.println("looking right");
-//             myServo.turn(SERVO_CENTER_RIGHT);
-//             break;
-//         case 4: // take measurement
-//             dist = myUltrasonicSensor.read();
-//             break;
-//     }
-
-//     Serial.print("dist: "); Serial.println(dist);
-//     if(dist >= 0 && dist <= MIN_DISTANCE) {
-//         // path still blocked
-//         return;
-//     }
-//     myServo.turn(90);
-//     this->isMovementBlocked = false;
-
-//     // if(this->blocked_instructionIndex == 2) {
-//     //     Serial.println
-//     //     myEngine.turn(false, 90);
-//     // } else {
-//     //     myEngine.turn(true, 90);       
-//     // }
-// }
-
-/**
- * @brief turns around and finds a direction that is not blocked by an obstacle
- * 
+ * this function uses delay
+ * measures distance to obstacle in three directions (left, center, right)
+ * if no direction is free, move backward and turn randomly
  */
 void Tamagotchi::findUnblockedDirection() {
     myEngine.stop();
@@ -331,7 +277,7 @@ void Tamagotchi::findUnblockedDirection() {
         this->ts_blocked = 0; 
         this->blocked_instructionIndex = 0;
     }
-
+    // make measuremens
     delay(200);
     dist[0] = myUltrasonicSensor.read();
     myServo.turn(SERVO_CENTER_RIGHT);
@@ -351,11 +297,21 @@ void Tamagotchi::findUnblockedDirection() {
         return;
     }
     delay(200);
+    // if no way is free, move back for a few millis
     myEngine.backward(SPEED_NORMAL);
-    delay(300);
+    delay(random(200, 400));
+    uint8_t rand = random(0,3); // 0 do nothink, 1 turn right, 2 turn left
+    if(rand > 0) {
+        myEngine.turn(rand == 1, SPEED_NORMAL);
+        delay(random(200, 800));
+    }
     myEngine.stop();
 }
 
+/**
+ * @brief checks if measure is in range
+ * 
+ */
 boolean Tamagotchi::isDistInRange(unsigned int dist, unsigned int min, unsigned int max) {
     return (dist >= min) && (dist < max);
 }
