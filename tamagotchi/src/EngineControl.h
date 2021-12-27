@@ -7,6 +7,7 @@ class EngineControl {
     void move(uint8_t dirA, uint8_t speedA, uint8_t dirB, uint8_t speedB);
     void turn(bool isRight, uint8_t speed);
     void stop();
+    void turn90deg(bool isRight);
 
     private:
     #define PIN_Motor_PWMA 5

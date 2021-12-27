@@ -26,6 +26,10 @@
 
 
 #define MIN_DISTANCE 20
+
+#define SPEED_SLOW 75
+#define SPEED_NORMAL 120
+#define SPEED_FAST 200
 /**
  * @brief Tamagotchi class
  * 
@@ -37,8 +41,6 @@
 
 Tamagotchi myTamagotchi;
 //DeviceDriverSet_ULTRASONIC AppULTRASONIC;
-
-uint16_t dist;
 
 Tamagotchi::Tamagotchi() {
     this->sleepyness = 50;
@@ -54,6 +56,12 @@ void Tamagotchi::init() {
     myUltrasonicSensor.init();
     myEngine.init();
     myServo.init();
+
+    myServo.turn(SERVO_CENTER_RIGHT);
+    delay(500);
+    myServo.turn(SERVO_CENTER_LEFT);
+    delay(500);
+    myServo.reset();
 }
 
 /**
@@ -187,7 +195,6 @@ void Tamagotchi::readBatteryLevel() {
  * like moving, turning, ... and a timespan during which the instruction has to be done
  */
 void Tamagotchi::organicMovement() {
-
     unsigned long time = millis();
     // check if last other action was at least n seconds in the past
     if(this->isOrganicMovement == false &&
@@ -197,17 +204,15 @@ void Tamagotchi::organicMovement() {
     }
     // check if obstacle is present
     // if yes, stop. Turn a bit
-    delay(1);
-    dist = myUltrasonicSensor.read();
-    // Serial.print("dist: "); Serial.println(dist);
+    uint16_t dist = myUltrasonicSensor.read();
     // if ultrasonic sensor detects obstacle within 20cm of range
-    Serial.println((String) "my distance is "+dist);
-    if((dist > 0 && dist <= MIN_DISTANCE)) {
+    // Serial.println((String) "my distance is "+dist);
+    if(isDistInRange(dist, 0, MIN_DISTANCE)) {
         // Serial.println("movement is blocked");
         findUnblockedDirection();
+        myServo.reset();
         return;
     }
-    Serial.println(":D");
     this->isMovementBlocked = false;
     this->isOrganicMovement = 0;
 
@@ -235,9 +240,8 @@ void Tamagotchi::organicMovement() {
 
     // execute instruction set
     if(this->move_instructionSet == 1) {
-        Serial.println("move, bitch");
         // TODO hardcoded for one instruction
-        myEngine.move(1, 160, 1, 160);
+        myEngine.move(1, SPEED_NORMAL, 1, SPEED_NORMAL);
         this->ts_move_instruction = time;
     }
 }
@@ -321,46 +325,45 @@ void Tamagotchi::findUnblockedDirection() {
     // if previously the movement wasn't blocked, stop the engine to avoid hitting obstacle
     if(this->isMovementBlocked == false) {
         Serial.println("movement is now blocked");
-        myEngine.stop();
         this->ts_move_instruction = 0;
-        this->isMovementBlocked = false;
+        this->isMovementBlocked = true;
         this->ts_blocked = 0; 
         this->blocked_instructionIndex = 0;
-        delay(50);
     }
 
+    delay(200);
     dist = myUltrasonicSensor.read();
     if(dist > MIN_DISTANCE) {
         Serial.println("road ahead is clear");
+        this->isMovementBlocked = false;
         myServo.reset();
-        myEngine.stop();
+        // delay(200);
+        return;
+    }
+
+    myServo.turn(SERVO_CENTER_RIGHT);
+    delay(200);
+    dist = myUltrasonicSensor.read();
+    if(!isDistInRange(dist, 0, MIN_DISTANCE)) {
+        Serial.println("road to the right is clear");
+        myServo.reset();
+        myEngine.turn90deg(true);
         this->isMovementBlocked = false;
         return;
     }
 
-    // turn right
-    myServo.turn(SERVO_CENTER_RIGHT);
-    delay(400);
-    dist = myUltrasonicSensor.read();
-    if(dist > MIN_DISTANCE) {
-        Serial.println("road to the right is clear");
-        myServo.reset();
-        myEngine.turn(true, 255);
-        delay(1000);
-        myEngine.stop();
-        this->isMovementBlocked = false;
-        return;
-    }
     myServo.turn(SERVO_CENTER_LEFT);
-    delay(400);
+    delay(200);
     dist = myUltrasonicSensor.read();
-    if(dist > MIN_DISTANCE) {
+    if(!isDistInRange(dist, 0, MIN_DISTANCE)) {
         Serial.println("road to the left is clear");
         myServo.reset();
-        myEngine.turn(false, 255);
-        delay(1000);
-        myEngine.stop();
+        myEngine.turn90deg(false);
         this->isMovementBlocked = false;
         return;
     }
+}
+
+boolean Tamagotchi::isDistInRange(unsigned int dist, unsigned int min, unsigned int max) {
+    return (dist >= min) && (dist < max);
 }

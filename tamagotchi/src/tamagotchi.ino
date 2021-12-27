@@ -22,18 +22,12 @@ unsigned int timer_three_minutes = 3 * 60;
 unsigned int timer_counter_max = 60 * 10;  
 
 #define BAUD_RATE 9600
-
-// DeviceDriverSet_Servo serv;
-
 void setup()
 {
   Serial.begin(BAUD_RATE);
   Serial.print("Serial init at ");
   Serial.println(BAUD_RATE);
   
-  // put your setup code here, to run once:
-  // Application_FunctionSet.ApplicationFunctionSet_Init();
-
   // initialize tamagotchi
   myTamagotchi.init();
   // setupTimers();
@@ -45,9 +39,8 @@ void loop()
   //put your main code here, to run repeatedly :
   wdt_reset();
   poorMansTimer();
+
   myTamagotchi.loop();
-  // myServo.turn(135);
-  // serv.DeviceDriverSet_Servo_control(135);
   
   // Application_FunctionSet.ApplicationFunctionSet_SensorDataUpdate();
   // Application_FunctionSet.ApplicationFunctionSet_KeyCommand();

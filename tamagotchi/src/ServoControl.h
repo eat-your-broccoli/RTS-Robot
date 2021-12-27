@@ -17,6 +17,7 @@ class ServoControl {
     void reset();
     private: 
     #define SERVO_PIN 10
+    uint8_t currentAngle;
 };
 
 extern ServoControl myServo;

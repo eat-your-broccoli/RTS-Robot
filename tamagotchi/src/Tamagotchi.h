@@ -53,6 +53,7 @@ class Tamagotchi {
     void organicMovement();
     void findUnblockedDirection();
     void stopOrganicMovement();
+    boolean Tamagotchi::isDistInRange(unsigned int dist, unsigned int min, unsigned int max);
 };
 
 extern Tamagotchi myTamagotchi;
