@@ -1,4 +1,5 @@
 #include "Arduino.h"
+#include "ApplicationFunctionSet_xxx0.h"
 // #include "Servo.h"
 
 #define SERVO_RIGHT 0
@@ -12,7 +13,7 @@
 class ServoControl {
     public:
     void init();
-    void turn(int angle);
+    void turn(unsigned int angle);
     void reset();
     private: 
     #define SERVO_PIN 10
