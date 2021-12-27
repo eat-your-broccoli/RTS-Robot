@@ -319,8 +319,9 @@ void Tamagotchi::stopOrganicMovement() {
  * 
  */
 void Tamagotchi::findUnblockedDirection() {
-    unsigned long time = millis();
-    uint16_t dist = 0;
+    myEngine.stop();
+    uint16_t dist[3];
+    unsigned int maxDistIndex;
 
     // if previously the movement wasn't blocked, stop the engine to avoid hitting obstacle
     if(this->isMovementBlocked == false) {
@@ -332,36 +333,27 @@ void Tamagotchi::findUnblockedDirection() {
     }
 
     delay(200);
-    dist = myUltrasonicSensor.read();
-    if(dist > MIN_DISTANCE) {
-        Serial.println("road ahead is clear");
-        this->isMovementBlocked = false;
-        myServo.reset();
-        // delay(200);
-        return;
-    }
-
+    dist[0] = myUltrasonicSensor.read();
     myServo.turn(SERVO_CENTER_RIGHT);
     delay(200);
-    dist = myUltrasonicSensor.read();
-    if(!isDistInRange(dist, 0, MIN_DISTANCE)) {
-        Serial.println("road to the right is clear");
-        myServo.reset();
-        myEngine.turn90deg(true);
-        this->isMovementBlocked = false;
-        return;
-    }
-
+    dist[1] = myUltrasonicSensor.read();
+    if(dist[1] >= dist[0]) maxDistIndex = 1;
     myServo.turn(SERVO_CENTER_LEFT);
     delay(200);
-    dist = myUltrasonicSensor.read();
-    if(!isDistInRange(dist, 0, MIN_DISTANCE)) {
-        Serial.println("road to the left is clear");
-        myServo.reset();
-        myEngine.turn90deg(false);
+    dist[2] = myUltrasonicSensor.read();
+    if(dist[2] >= dist[maxDistIndex]) maxDistIndex = 2;
+    myServo.reset();
+    if(!isDistInRange(dist[maxDistIndex], 0, MIN_DISTANCE)) {
+        if(maxDistIndex != 0) { // road ahead isn't clear
+            myEngine.turn90deg(maxDistIndex == 1);  
+        }
         this->isMovementBlocked = false;
         return;
     }
+    delay(200);
+    myEngine.backward(SPEED_NORMAL);
+    delay(300);
+    myEngine.stop();
 }
 
 boolean Tamagotchi::isDistInRange(unsigned int dist, unsigned int min, unsigned int max) {
