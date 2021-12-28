@@ -26,7 +26,7 @@ void EngineControl::stop() {
     move(3, 0, 3, 0);
 }
 
-void EngineControl::move(uint8_t dirA, uint8_t speedA, uint8_t dirB, uint8_t speedB) {
+void EngineControl::move(uint8_t dirR, uint8_t speedR, uint8_t dirL, uint8_t speedL) {
     #if defined DEBUG_BLOCK_ENGINE && DEBUG_BLOCK_ENGINE == 1
         return;
     #endif
@@ -37,14 +37,14 @@ void EngineControl::move(uint8_t dirA, uint8_t speedA, uint8_t dirB, uint8_t spe
         digitalWrite(PIN_Motor_STBY, HIGH);
             
         // motor group A
-        switch (dirA) {
-            case 1: 
+        switch (dirR) {
+            case FWD: 
                 digitalWrite(PIN_Motor_AIN_1, HIGH); 
-                analogWrite(PIN_Motor_PWMA, speedA);
+                analogWrite(PIN_Motor_PWMA, speedR);
                 break;
-            case 2: 
+            case BWD: 
                 digitalWrite(PIN_Motor_AIN_1, LOW);
-                analogWrite(PIN_Motor_PWMA, speedA);
+                analogWrite(PIN_Motor_PWMA, speedR);
                 break;
             default: 
                 analogWrite(PIN_Motor_PWMA, 0);
@@ -52,14 +52,14 @@ void EngineControl::move(uint8_t dirA, uint8_t speedA, uint8_t dirB, uint8_t spe
         }
 
         // motor group B
-        switch (dirB) {
-            case 1: 
+        switch (dirL) {
+            case FWD: 
                 digitalWrite(PIN_Motor_BIN_1, HIGH); 
-                analogWrite(PIN_Motor_PWMB, speedB);
+                analogWrite(PIN_Motor_PWMB, speedL);
                 break;
-            case 2: 
+            case BWD: 
                 digitalWrite(PIN_Motor_BIN_1, LOW);
-                analogWrite(PIN_Motor_PWMB, speedB);
+                analogWrite(PIN_Motor_PWMB, speedL);
                 break;
             default: 
                 analogWrite(PIN_Motor_PWMB, 0);
@@ -71,16 +71,16 @@ void EngineControl::move(uint8_t dirA, uint8_t speedA, uint8_t dirB, uint8_t spe
 }
 
 void EngineControl::forward(uint8_t speed) {
-    move(1, speed, 1, speed);
+    move(FWD, speed, FWD, speed);
 }
 
 void EngineControl::backward(uint8_t speed) {
-    move(2, speed, 2, speed);
+    move(BWD, speed, BWD, speed);
 }
 
 void EngineControl::turn(bool isRight, uint8_t speed) {
-    if(isRight == 1) move(2, speed, 1, speed);
-    else move(1, speed, 2, speed);
+    if(isRight == 1) move(BWD, speed, FWD, speed);
+    else move(FWD, speed, BWD, speed);
 }
 
 void EngineControl::turn90deg(bool isRight) {

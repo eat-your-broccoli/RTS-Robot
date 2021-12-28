@@ -1,6 +1,9 @@
 
 #include "Arduino.h"
 
+#define FWD 1
+#define BWD 0
+
 class EngineControl {
     public:
     void init();
