@@ -19,7 +19,6 @@ unsigned int timer_minute = 60;
 unsigned int timer_three_minutes = 3 * 60;
 
 // clear timer every 10 minutes
-unsigned int timer_counter_max = 60 * 10;  
 unsigned int timer_counter_max = 60 * 10;
 
 #define MAX_SERVOS  4
