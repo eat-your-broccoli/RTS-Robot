@@ -387,19 +387,28 @@ void Tamagotchi::stopOrganicMovement() {
  * if no direction is free, move backward and turn randomly
  */
 void Tamagotchi::findUnblockedDirection() {
-    myEngine.stop();
-    uint16_t dist[3];
-    unsigned int maxDistIndex;
-
+  
+    
+    
     // if previously the movement wasn't blocked, stop the engine to avoid hitting obstacle
     if(this->isMovementBlocked == false) {
+        myEngine.stop();
         this->ts_move_instruction = 0;
         this->isMovementBlocked = true;
-        // this->ts_blocked = 0; 
+        this->ts_blocked = millis(); 
         // this->blocked_instructionIndex = 0;
-
-        // index = 0
-    } else {
+        this->fUD_Index =0;
+        
+    } else if (millis()- this->ts_blocked  < 200) {
+        return;
+    }else if(this->fUD_Index== 3){
+        if(millis()>=this->ts_blocked+this->fUD_randomTurnTime){
+            this->fUD_Index++;
+        }else{
+            return;
+        }
+    }else{
+        this->fUD_Index++;
         // if millis() - ts_blocked < 200 {
         // return
         // }  
@@ -410,33 +419,44 @@ void Tamagotchi::findUnblockedDirection() {
     // TODO delay used here. change that
     // make measuremens
     // if index == 0 {
-    delay(200);
-    dist[0] = myUltrasonicSensor.read();
-    myServo.turn(SERVO_CENTER_RIGHT);
-    // }
-    delay(200);
-    // if index == 1 {
-    dist[1] = myUltrasonicSensor.read();
-    if(dist[1] >= dist[0]) maxDistIndex = 1;
-    myServo.turn(SERVO_CENTER_LEFT);
-    // }
-    delay(200);
-    dist[2] = myUltrasonicSensor.read();
-    if(dist[2] >= dist[maxDistIndex]) maxDistIndex = 2;
-    myServo.reset();
-    if(!isDistInRange(dist[maxDistIndex], 0, MIN_DISTANCE)) {
-        if(maxDistIndex != 0) { // road ahead isn't clear
-            myEngine.turn90deg(maxDistIndex == 1);  
+    switch(this->fUD_Index) {
+    case 0:
+        fUD_Directions[0] = myUltrasonicSensor.read();
+        myServo.turn(SERVO_CENTER_RIGHT);
+        this->fUD_maxDistIndex = 0;
+        this->ts_blocked  = millis();
+        return;
+    case 1:
+        this->fUD_Directions[1] = myUltrasonicSensor.read();
+        if(this->fUD_Directions[1] >= this->fUD_Directions[0]) this->fUD_maxDistIndex = 1;
+        myServo.turn(SERVO_CENTER_LEFT);
+         this->ts_blocked  = millis();
+        return;
+    case 2:
+        this->fUD_Directions[2] = myUltrasonicSensor.read();
+        if(this->fUD_Directions[2] >= this->fUD_Directions[this->fUD_maxDistIndex]) this->fUD_maxDistIndex = 2;
+        myServo.reset();
+        if(!isDistInRange(this->fUD_Directions[this->fUD_maxDistIndex], 0, MIN_DISTANCE)) {
+            if(this->fUD_maxDistIndex != 0) { // road ahead isn't clear
+                myEngine.turn90deg(this->fUD_maxDistIndex == 1);   //delay in turn90deg
+            }
+            this->isMovementBlocked = false;
+            return;
         }
+                  // if no way is free turn to the right or left at random
+        uint8_t rand = random(0,2); // 0 do nothing, 1 turn right, 2 turn left
+        myEngine.turn(rand == 1, SPEED_NORMAL);
+        this->ts_blocked =millis();
+        this->fUD_randomTurnTime=(random(200, 800));
+        this->fUD_Index++;//case 3 -> waiting time
+        return;
+    case 3:
+        return;
+    case 4:
+        myEngine.stop();
         this->isMovementBlocked = false;
         return;
     }
-    delay(200);
-    // if no way is free turn to the right or left at random
-    uint8_t rand = random(0,2); // 0 do nothing, 1 turn right, 2 turn left
-    myEngine.turn(rand == 1, SPEED_NORMAL);
-    delay(random(200, 800));
-    myEngine.stop();
 }
 
 /**

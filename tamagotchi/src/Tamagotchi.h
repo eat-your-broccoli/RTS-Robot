@@ -70,6 +70,12 @@ private:
     
     unsigned long ts_face_update;
 
+    //findUnblockedDirection -> directions that are searched
+    uint8_t fUD_Directions[3];
+    uint8_t fUD_Index = 0;
+    uint8_t fUD_maxDistIndex =0;
+    uint16_t fUD_randomTurnTime =0;
+
     // volatile because compiler should not optimize them
     volatile byte flag_save;
     volatile byte flag_is_pet;
