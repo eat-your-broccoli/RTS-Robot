@@ -8,6 +8,8 @@
  */
 #include <avr/wdt.h>
 // #include "ApplicationFunctionSet_xxx0.h"
+#include <Wire.h>
+#include "ApplicationFunctionSet_xxx0.h"
 #include "Tamagotchi.h"
 #include "DeviceDriverSet_xxx0.h"
 
@@ -32,9 +34,8 @@ void setup()
   Serial.print("Serial init at ");
   Serial.println(BAUD_RATE);
   
-  // initialize tamagotchi
-  myTamagotchi.init();
   // setupTimers();
+  myTamagotchi.init(&Wire);
   wdt_enable(WDTO_2S);
 
   pinMode(PIN_FEEDING_BUTTON, INPUT_PULLUP);
