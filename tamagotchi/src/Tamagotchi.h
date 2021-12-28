@@ -11,12 +11,19 @@
 #define SPEED_FAST 200
 #endif
 
-class Tamagotchi {
-    private:
+class Tamagotchi
+{
+private:
     volatile int affection;
     volatile int hunger;
     volatile int sleepyness;
+    float smoothedVolt;
     unsigned int tickCounter;
+    volatile float VoltageData_V;        //Battery Voltage Value
+    const float VoltageDetection = 7.00;
+    boolean VoltageDetectionStatus = false;
+    
+    unsigned long previousMillisFeeding;
 
     // if movement is blocked, e.g. obstacle detected by Ultrasonic sensor
     bool isMovementBlocked = false;
@@ -45,18 +52,22 @@ class Tamagotchi {
     volatile byte flag_is_pet;
     volatile byte flag_is_fed;
     volatile byte flag_read_battery;
+    volatile byte flag_button;
 
-    public:
+public:
     Tamagotchi();
     void init();
     void onTick();
     void loop();
+    void setup();
+    void setIsFedFlag();
 
-    private:
+private:
     void writeDataToEEPROM();
     void writeToEEPROM(int address, int value);
     void readDataFromEEPROM();
-    void readBatteryLevel();
+    float readBatteryLevel();
+    uint8_t convertVoltToSleepyness(float voltage);
     void debug(String s);
     void organicMovement();
     void findUnblockedDirection();

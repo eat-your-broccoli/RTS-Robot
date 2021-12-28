@@ -20,6 +20,11 @@ unsigned int timer_three_minutes = 3 * 60;
 
 // clear timer every 10 minutes
 unsigned int timer_counter_max = 60 * 10;  
+unsigned int timer_counter_max = 60 * 10;
+
+#define MAX_SERVOS  4
+
+#define PIN_FEEDING_BUTTON 18
 
 #define BAUD_RATE 9600
 void setup()
@@ -32,6 +37,13 @@ void setup()
   myTamagotchi.init();
   // setupTimers();
   wdt_enable(WDTO_2S);
+
+  pinMode(PIN_FEEDING_BUTTON, INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(PIN_FEEDING_BUTTON), interruptFeedingButton, RISING);
+}
+
+void interruptFeedingButton(){
+  myTamagotchi.setIsFedFlag();
 }
 
 void loop()
@@ -41,26 +53,6 @@ void loop()
   poorMansTimer();
 
   myTamagotchi.loop();
-  
-  // Application_FunctionSet.ApplicationFunctionSet_SensorDataUpdate();
-  // Application_FunctionSet.ApplicationFunctionSet_KeyCommand();
-  // Application_FunctionSet.ApplicationFunctionSet_RGB();
-  // Application_FunctionSet.ApplicationFunctionSet_Follow();
-  // Application_FunctionSet.ApplicationFunctionSet_Obstacle();
-  // Application_FunctionSet.ApplicationFunctionSet_Tracking();
-  // Application_FunctionSet.ApplicationFunctionSet_Rocker();
-  // Application_FunctionSet.ApplicationFunctionSet_Standby();
-  // Application_FunctionSet.ApplicationFunctionSet_IRrecv();
-  // Application_FunctionSet.ApplicationFunctionSet_SerialPortDataAnalysis();
-
-  // Application_FunctionSet.CMD_ServoControl_xxx0();
-  // Application_FunctionSet.CMD_MotorControl_xxx0();
-  // Application_FunctionSet.CMD_CarControlTimeLimit_xxx0();
-  // Application_FunctionSet.CMD_CarControlNoTimeLimit_xxx0();
-  // Application_FunctionSet.CMD_MotorControlSpeed_xxx0();
-  // Application_FunctionSet.CMD_LightingControlTimeLimit_xxx0();
-  // Application_FunctionSet.CMD_LightingControlNoTimeLimit_xxx0();
-  // Application_FunctionSet.CMD_ClearAllFunctions_xxx0();
 }
 
 /**
