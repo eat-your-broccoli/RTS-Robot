@@ -302,7 +302,6 @@ void Tamagotchi::organicMovement() {
         myServo.reset();
         return;
     }
-    this->isMovementBlocked = false;
 
     // check if not already moving organically
     if(this->isOrganicMovement == 0) {
@@ -321,7 +320,6 @@ void Tamagotchi::organicMovement() {
         this->ts_move_instruction = 0; // reset timestamp
     }
 
-    // TODO get instruction matching index
     Instruction *instr = (this->move_instructionSet->instr[this->move_instructionIndex]);
 
     // TODO timer overflows
@@ -342,8 +340,8 @@ void Tamagotchi::organicMovement() {
     instr = (this->move_instructionSet->instr[this->move_instructionIndex]);
 
     // decode direction instruction
-    uint8_t dirR = (instr->dir & 0b01);
-    uint8_t dirL = (instr->dir >> 1);
+    uint8_t dirR = (instr->dir & 0b01); // 11 AND 01 = 01 (forward right); 10 AND 01 = 00 (backward right)
+    uint8_t dirL = (instr->dir >> 1);  // 11 >> 1 = 01   
     
     // execute instruction
     this->ts_move_instruction = time;
@@ -375,9 +373,10 @@ void Tamagotchi::findUnblockedDirection() {
     if(this->isMovementBlocked == false) {
         this->ts_move_instruction = 0;
         this->isMovementBlocked = true;
-        this->ts_blocked = 0; 
-        this->blocked_instructionIndex = 0;
+        // this->ts_blocked = 0; 
+        // this->blocked_instructionIndex = 0;
     }
+    // TODO delay used here. change that
     // make measuremens
     delay(200);
     dist[0] = myUltrasonicSensor.read();
@@ -398,14 +397,10 @@ void Tamagotchi::findUnblockedDirection() {
         return;
     }
     delay(200);
-    // if no way is free, move back for a few millis
-    myEngine.backward(SPEED_NORMAL);
-    delay(random(200, 400));
-    uint8_t rand = random(0,3); // 0 do nothink, 1 turn right, 2 turn left
-    if(rand > 0) {
-        myEngine.turn(rand == 1, SPEED_NORMAL);
-        delay(random(200, 800));
-    }
+    // if no way is free turn to the right or left at random
+    uint8_t rand = random(0,2); // 0 do nothing, 1 turn right, 2 turn left
+    myEngine.turn(rand == 1, SPEED_NORMAL);
+    delay(random(200, 800));
     myEngine.stop();
 }
 

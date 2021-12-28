@@ -33,7 +33,7 @@ const Instruction PROGMEM INS_TURN_LEFT_500 = {
     SPEED_NORMAL,
     SPEED_NORMAL,
     90,
-    1000 
+    500 
 };
 
 const Instruction PROGMEM INS_TURN_LEFT_1000 = {
@@ -49,7 +49,7 @@ const Instruction PROGMEM INS_TURN_RIGHT_500 = {
     SPEED_NORMAL,
     SPEED_NORMAL,
     90,
-    1000 
+    500 
 };
 
 const Instruction PROGMEM INS_TURN_RIGHT_1000 = {
