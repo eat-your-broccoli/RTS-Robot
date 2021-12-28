@@ -7,13 +7,15 @@
  * @FilePath: 
  */
 #include <avr/wdt.h>
+// #include "ApplicationFunctionSet_xxx0.h"
 #include <Wire.h>
 #include "ApplicationFunctionSet_xxx0.h"
 #include "Tamagotchi.h"
+#include "DeviceDriverSet_xxx0.h"
 
 // will be incremented every 1 sec
 volatile unsigned int timer_counter = 0;
-
+unsigned long lastTimestamp = 0;
 unsigned int timer_minute = 60;
 
 unsigned int timer_three_minutes = 3 * 60;
@@ -25,16 +27,15 @@ unsigned int timer_counter_max = 60 * 10;
 
 #define PIN_FEEDING_BUTTON 18
 
+#define BAUD_RATE 9600
 void setup()
 {
-  Serial.begin(9600);
-  Serial.println("Serial init at 9600");
-  // put your setup code here, to run once:
-  Application_FunctionSet.ApplicationFunctionSet_Init();
-
-  // initialize tamagotchi
+  Serial.begin(BAUD_RATE);
+  Serial.print("Serial init at ");
+  Serial.println(BAUD_RATE);
+  
+  // setupTimers();
   myTamagotchi.init(&Wire);
-  setupTimers();
   wdt_enable(WDTO_2S);
 
   pinMode(PIN_FEEDING_BUTTON, INPUT_PULLUP);
@@ -49,26 +50,9 @@ void loop()
 {
   //put your main code here, to run repeatedly :
   wdt_reset();
-  myTamagotchi.loop();
-  // Application_FunctionSet.ApplicationFunctionSet_SensorDataUpdate();
-  // Application_FunctionSet.ApplicationFunctionSet_KeyCommand();
-  // Application_FunctionSet.ApplicationFunctionSet_RGB();
-  // // Application_FunctionSet.ApplicationFunctionSet_Follow();
-  // // Application_FunctionSet.ApplicationFunctionSet_Obstacle();
-  // // Application_FunctionSet.ApplicationFunctionSet_Tracking();
-  // // Application_FunctionSet.ApplicationFunctionSet_Rocker();
-  // Application_FunctionSet.ApplicationFunctionSet_Standby();
-  // Application_FunctionSet.ApplicationFunctionSet_IRrecv();
-  // Application_FunctionSet.ApplicationFunctionSet_SerialPortDataAnalysis();
+  poorMansTimer();
 
-  // Application_FunctionSet.CMD_ServoControl_xxx0();
-  // Application_FunctionSet.CMD_MotorControl_xxx0();
-  // Application_FunctionSet.CMD_CarControlTimeLimit_xxx0();
-  // Application_FunctionSet.CMD_CarControlNoTimeLimit_xxx0();
-  // Application_FunctionSet.CMD_MotorControlSpeed_xxx0();
-  // Application_FunctionSet.CMD_LightingControlTimeLimit_xxx0();
-  // Application_FunctionSet.CMD_LightingControlNoTimeLimit_xxx0();
-  // Application_FunctionSet.CMD_ClearAllFunctions_xxx0();
+  myTamagotchi.loop();
 }
 
 /**
@@ -76,25 +60,33 @@ void loop()
  */
 void setupTimers() {
   // a great thank you to https://www.arduinoslovakia.eu/application/timer-calculator
-  cli(); // disable all interrupts
-  TCCR4A = 0;     // set entire TCCR1A register to 0
-  TCCR4B = 0;     // same for TCCR1B
-  // set compare match register to desired timer count:
-  OCR4A = 15624;
+  noInterrupts();
+  // Clear registers
+  TCCR1A = 0;
+  TCCR1B = 0;
+  TCNT1 = 0;
 
-  // turn on CTC mode:
-  TCCR4B |= (1 << WGM42);
-
-  // 1024 prescaler
-  TCCR4B |= (1 << CS42) | (1 << CS40);
-
-  // enable timer compare interrupt:
-  TIMSK4 |= (1 << OCIE4A);
-  sei();
+  // 100 Hz (16000000/((624+1)*256))
+  OCR1A = 624;
+  // CTC
+  TCCR1B |= (1 << WGM12);
+  // Prescaler 256
+  TCCR1B |= (1 << CS12);
+  // Output Compare Match A Interrupt Enable
+  TIMSK1 |= (1 << OCIE1A);
+  interrupts();
   Serial.println("Setup timer complete");
 }
 
-ISR(TIMER4_COMPA_vect) // timer compare interrupt service routine
-{
-  myTamagotchi.onTick();
+// ISR(TIMER1_COMPA_vect) // timer compare interrupt service routine
+// {
+//   myTamagotchi.onTick();
+// }
+
+void poorMansTimer() {
+  unsigned long time = millis();
+  if(time - lastTimestamp >= 1000) {
+    lastTimestamp = time;
+    myTamagotchi.onTick();
+  }
 }

@@ -23,6 +23,11 @@
 #define DEFAULT_HUNGER 80
 #define DEFAULT_AFFECTION 20
 
+// organic movement 
+#define MOVE_ACTION_COOLDOWN 3000 // 3000 ms = 3sec
+#define MOVE_UNBLOCK_COOLDOWN 2500 // 1000ms = 1sec
+
+// voltage reading
 #define VOLT_SMOOTHING 0.2
 #define VOLT_BATTERY_UPPER_LIMIT 7.0
 #define VOLT_BATTERY_LOWER_LIMIT 4.0
@@ -33,6 +38,12 @@ DeviceDriverSet_Voltage AppVoltage2;
 // feeding cooldown
 #define FEEDING_COOLDOWN 10000 // 10 seconds
 
+
+#define MIN_DISTANCE 20
+
+
+
+#define PIN_RANDOM_INIT A10
 /**
  * @brief Tamagotchi class
  * 
@@ -56,6 +67,18 @@ void Tamagotchi::init(TwoWire *twi) {
     // readDataFromEEPROM();
     Serial.println("done reading data from EEPROM");
 
+    pinMode(PIN_RANDOM_INIT, INPUT);
+    randomSeed(analogRead(PIN_RANDOM_INIT));
+
+    myUltrasonicSensor.init();
+    myEngine.init();
+    myServo.init();
+
+    myServo.turn(SERVO_CENTER_RIGHT);
+    delay(500);
+    myServo.turn(SERVO_CENTER_LEFT);
+    delay(500);
+    myServo.reset();
        
     Serial.println("init AppVoltage ...");
     pinMode(PIN_Voltage, INPUT);
@@ -165,6 +188,19 @@ void Tamagotchi::loop()
         this->flag_is_pet = 0;
     }
 
+    if(hasAnythingChanged > 0) {
+        Serial.print("Hunger: "); Serial.println(this->hunger);
+        Serial.print("Affection: "); Serial.println(this->affection);
+        Serial.print("Sleepyness: "); Serial.println(this->sleepyness);
+    }
+
+    organicMovement();
+    
+    
+    // reset flags
+    this->flag_is_pet = 0;
+    this->flag_is_fed = 0;
+    this->flag_read_battery = 0;
     if (hasAnythingChanged > 0)
     {
         Serial.print("Hunger: ");
@@ -263,7 +299,153 @@ uint8_t Tamagotchi::convertVoltToSleepyness(float voltage) {
 }
 
 /**
- * @brief displays the face
+ * @brief handles organic movement
+ * 
+ * 
+ * what is a instruction set? a instruction consist of an action 
+ * like moving, turning, ... and a timespan during which the instruction has to be done
+ */
+void Tamagotchi::organicMovement() {
+    unsigned long time = millis();
+    // check if last other action was at least n seconds in the past
+    if(this->isOrganicMovement == false &&
+     (time < this->ts_move_cooldown || (time - this->ts_move_cooldown) < MOVE_ACTION_COOLDOWN)) {
+        // wait until enough time has passed
+        return;
+    }
+    // check if obstacle is present
+    // if yes, stop. Turn a bit
+    uint16_t dist = myUltrasonicSensor.read();
+    // if ultrasonic sensor detects obstacle within 20cm of range
+    // Serial.println((String) "my distance is "+dist);
+    if(isDistInRange(dist, 0, MIN_DISTANCE)) {
+        // Serial.println("movement is blocked");
+        findUnblockedDirection();
+        myServo.reset();
+        return;
+    }
+
+    // check if not already moving organically
+    if(this->isOrganicMovement == 0) {
+        // reset instruction set if it was not properly resetted
+        this->move_instructionSetIndex = -1;
+        this->ts_move_instruction = 0;
+        this->isOrganicMovement = 1;
+    }
+
+    // load instruction set
+    if(this->move_instructionSetIndex == -1) {
+        Serial.println("loading instruction set");
+        this->move_instructionSetIndex = 1;
+        this->move_instructionSet = this->randomInstructionSet();
+        this->move_instructionIndex = -1;
+        this->ts_move_instruction = 0; // reset timestamp
+    }
+
+    Instruction *instr = (this->move_instructionSet->instr[this->move_instructionIndex]);
+
+    // TODO timer overflows
+    // check if current instruction's time has passed
+    if(this->ts_move_instruction != 0 && time - this->ts_move_instruction <= (instr->time)) {
+        // do nothing
+        return;
+    }
+    // next instruction in set
+    this->move_instructionIndex++;
+    // if we have done all instructions in the set, stop the movement
+    if(this->move_instructionIndex >= this->move_instructionSet->length) {
+        stopOrganicMovement();
+        return;
+    }
+
+    Serial.println("loading next instruction");
+    instr = (this->move_instructionSet->instr[this->move_instructionIndex]);
+
+    // decode direction instruction
+    uint8_t dirR = (instr->dir & 0b01); // 11 AND 01 = 01 (forward right); 10 AND 01 = 00 (backward right)
+    uint8_t dirL = (instr->dir >> 1);  // 11 >> 1 = 01   
+    
+    // execute instruction
+    this->ts_move_instruction = time;
+    myEngine.move(dirR, instr->R, dirL, instr->L);
+    myServo.turn(instr->servo);
+}
+
+void Tamagotchi::stopOrganicMovement() {
+    Serial.println("stopping organic movement");
+    myEngine.stop();
+    this->isOrganicMovement = 0;
+    this->move_instructionIndex = 0;
+    this->move_instructionSetIndex = -1;
+    myServo.reset();
+}
+
+/**
+ * @brief turns around and finds a direction that is not blocked by an obstacle
+ * this function uses delay
+ * measures distance to obstacle in three directions (left, center, right)
+ * if no direction is free, move backward and turn randomly
+ */
+void Tamagotchi::findUnblockedDirection() {
+    myEngine.stop();
+    uint16_t dist[3];
+    unsigned int maxDistIndex;
+
+    // if previously the movement wasn't blocked, stop the engine to avoid hitting obstacle
+    if(this->isMovementBlocked == false) {
+        this->ts_move_instruction = 0;
+        this->isMovementBlocked = true;
+        // this->ts_blocked = 0; 
+        // this->blocked_instructionIndex = 0;
+    }
+    // TODO delay used here. change that
+    // make measuremens
+    delay(200);
+    dist[0] = myUltrasonicSensor.read();
+    myServo.turn(SERVO_CENTER_RIGHT);
+    delay(200);
+    dist[1] = myUltrasonicSensor.read();
+    if(dist[1] >= dist[0]) maxDistIndex = 1;
+    myServo.turn(SERVO_CENTER_LEFT);
+    delay(200);
+    dist[2] = myUltrasonicSensor.read();
+    if(dist[2] >= dist[maxDistIndex]) maxDistIndex = 2;
+    myServo.reset();
+    if(!isDistInRange(dist[maxDistIndex], 0, MIN_DISTANCE)) {
+        if(maxDistIndex != 0) { // road ahead isn't clear
+            myEngine.turn90deg(maxDistIndex == 1);  
+        }
+        this->isMovementBlocked = false;
+        return;
+    }
+    delay(200);
+    // if no way is free turn to the right or left at random
+    uint8_t rand = random(0,2); // 0 do nothing, 1 turn right, 2 turn left
+    myEngine.turn(rand == 1, SPEED_NORMAL);
+    delay(random(200, 800));
+    myEngine.stop();
+}
+
+/**
+ * @brief checks if measure is in range
+ * 
+ */
+boolean Tamagotchi::isDistInRange(unsigned int dist, unsigned int min, unsigned int max) {
+    return (dist >= min) && (dist < max);
+}
+
+InstructionSet* Tamagotchi::randomInstructionSet() {
+    uint8_t rand = random(0, 10);
+    switch(rand) {
+        case 0: return IS_FORWARD;
+        case 1: return IS_SPIN_RIGHT;
+        case 2: return IS_SPIN_LEFT;
+        case 3: return IS_WIGGLE;
+        default: return IS_FORWARD;
+    }
+}
+
+/* @brief displays the face
  * NOTE: DO NOT CALL THIS METHOD DIRECTLY
  * NOTE: use setDisplayFace
  * 

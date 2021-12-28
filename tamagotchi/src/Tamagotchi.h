@@ -1,5 +1,15 @@
 #include <avr/interrupt.h>
 #include "Arduino.h"
+#include "UltrasonicSensor.h"
+#include "EngineControl.h"
+#include "ServoControl.h"
+#include "InstructionSet.h"
+
+#ifndef SPEED_SLOW
+#define SPEED_SLOW 75
+#define SPEED_NORMAL 120
+#define SPEED_FAST 200
+#endif
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
@@ -37,6 +47,27 @@ private:
     
     unsigned long previousMillisFeeding;
 
+    // if movement is blocked, e.g. obstacle detected by Ultrasonic sensor
+    bool isMovementBlocked = false;
+
+    // timestamp for handlich unblocking routine
+    unsigned long ts_blocked;
+
+    unsigned int blocked_instructionIndex;
+
+    // when was last action done (petting, feeding, sleeping)
+    unsigned long ts_move_cooldown; 
+    // is robot currently moving organically?
+    int isOrganicMovement = 0;
+    // when started last movement instruction?
+    unsigned long ts_move_instruction = 0;
+    // which instruction set currently is used
+    int move_instructionSetIndex = 0;
+    // the instruction as a pointer
+    InstructionSet *move_instructionSet;
+    // which instruction in the instruction set currently is used
+    int move_instructionIndex = 0;
+    
     unsigned long ts_face_update;
 
     // volatile because compiler should not optimize them
@@ -71,6 +102,11 @@ private:
     float readBatteryLevel();
     uint8_t convertVoltToSleepyness(float voltage);
     void debug(String s);
+    void organicMovement();
+    void findUnblockedDirection();
+    void stopOrganicMovement();
+    boolean isDistInRange(unsigned int dist, unsigned int min, unsigned int max);
+    InstructionSet* randomInstructionSet();
     void displayFace(enum_face index);
     void setDisplayFace(enum_face index, uint8_t priority);
     void chooseFace();
