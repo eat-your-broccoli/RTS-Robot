@@ -3,7 +3,13 @@
 #include "UltrasonicSensor.h"
 #include "EngineControl.h"
 #include "ServoControl.h"
+#include "InstructionSet.h"
 
+#ifndef SPEED_SLOW
+#define SPEED_SLOW 75
+#define SPEED_NORMAL 120
+#define SPEED_FAST 200
+#endif
 
 class Tamagotchi {
     private:
@@ -27,7 +33,9 @@ class Tamagotchi {
     // when started last movement instruction?
     unsigned long ts_move_instruction = 0;
     // which instruction set currently is used
-    int move_instructionSet = 0;
+    int move_instructionSetIndex = 0;
+    // the instruction as a pointer
+    InstructionSet *move_instructionSet;
     // which instruction in the instruction set currently is used
     int move_instructionIndex = 0;
     
@@ -53,7 +61,8 @@ class Tamagotchi {
     void organicMovement();
     void findUnblockedDirection();
     void stopOrganicMovement();
-    boolean Tamagotchi::isDistInRange(unsigned int dist, unsigned int min, unsigned int max);
+    boolean isDistInRange(unsigned int dist, unsigned int min, unsigned int max);
+    InstructionSet* randomInstructionSet();
 };
 
 extern Tamagotchi myTamagotchi;

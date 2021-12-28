@@ -27,9 +27,7 @@
 
 #define MIN_DISTANCE 20
 
-#define SPEED_SLOW 75
-#define SPEED_NORMAL 120
-#define SPEED_FAST 200
+
 
 #define PIN_RANDOM_INIT A10
 /**
@@ -130,7 +128,6 @@ void Tamagotchi::loop() {
         Serial.print("Hunger: "); Serial.println(this->hunger);
         Serial.print("Affection: "); Serial.println(this->affection);
         Serial.print("Sleepyness: "); Serial.println(this->sleepyness);
-
     }
 
     organicMovement();
@@ -219,43 +216,61 @@ void Tamagotchi::organicMovement() {
         return;
     }
     this->isMovementBlocked = false;
-    this->isOrganicMovement = 0;
 
     // check if not already moving organically
     if(this->isOrganicMovement == 0) {
         // reset instruction set if it was not properly resetted
-        this->move_instructionSet = -1;
+        this->move_instructionSetIndex = -1;
         this->ts_move_instruction = 0;
         this->isOrganicMovement = 1;
     }
 
-    if(time - this->ts_move_instruction < 3000) {
+    // load instruction set
+    if(this->move_instructionSetIndex == -1) {
+        Serial.println("loading instruction set");
+        this->move_instructionSetIndex = 1;
+        this->move_instructionSet = this->randomInstructionSet();
+        this->move_instructionIndex = -1;
+        this->ts_move_instruction = 0; // reset timestamp
+    }
+
+    // TODO get instruction matching index
+    Instruction *instr = (this->move_instructionSet->instr[this->move_instructionIndex]);
+
+    // TODO timer overflows
+    // check if current instruction's time has passed
+    if(this->ts_move_instruction != 0 && time - this->ts_move_instruction <= (instr->time)) {
         // do nothing
-        // TODO hardcoded limit that each instruction should be done for 3 sec
+        return;
+    }
+    // next instruction in set
+    this->move_instructionIndex++;
+    // if we have done all instructions in the set, stop the movement
+    if(this->move_instructionIndex >= this->move_instructionSet->length) {
+        stopOrganicMovement();
         return;
     }
 
-    if(this->move_instructionSet == -1) {
-        // TODO 
-        // check is instruction set is loaded
+    Serial.println("loading next instruction");
+    instr = (this->move_instructionSet->instr[this->move_instructionIndex]);
 
-        // if not, choose random instruction set 
-        this->move_instructionSet = 1;
-    }
-
-    // execute instruction set
-    if(this->move_instructionSet == 1) {
-        // TODO hardcoded for one instruction
-        myEngine.move(1, SPEED_NORMAL, 1, SPEED_NORMAL);
-        this->ts_move_instruction = time;
-    }
+    // decode direction instruction
+    uint8_t dirR = (instr->dir & 0b01);
+    uint8_t dirL = (instr->dir >> 1);
+    
+    // execute instruction
+    this->ts_move_instruction = time;
+    myEngine.move(dirR, instr->R, dirL, instr->L);
+    myServo.turn(instr->servo);
 }
 
 void Tamagotchi::stopOrganicMovement() {
+    Serial.println("stopping organic movement");
     myEngine.stop();
     this->isOrganicMovement = 0;
     this->move_instructionIndex = 0;
-    this->move_instructionSet = -1;
+    this->move_instructionSetIndex = -1;
+    myServo.reset();
 }
 
 /**
@@ -271,7 +286,6 @@ void Tamagotchi::findUnblockedDirection() {
 
     // if previously the movement wasn't blocked, stop the engine to avoid hitting obstacle
     if(this->isMovementBlocked == false) {
-        Serial.println("movement is now blocked");
         this->ts_move_instruction = 0;
         this->isMovementBlocked = true;
         this->ts_blocked = 0; 
@@ -314,4 +328,15 @@ void Tamagotchi::findUnblockedDirection() {
  */
 boolean Tamagotchi::isDistInRange(unsigned int dist, unsigned int min, unsigned int max) {
     return (dist >= min) && (dist < max);
+}
+
+InstructionSet* Tamagotchi::randomInstructionSet() {
+    uint8_t rand = random(0, 10);
+    switch(rand) {
+        case 0: return IS_FORWARD;
+        case 1: return IS_SPIN_RIGHT;
+        case 2: return IS_SPIN_LEFT;
+        case 3: return IS_WIGGLE;
+        default: return IS_FORWARD;
+    }
 }
