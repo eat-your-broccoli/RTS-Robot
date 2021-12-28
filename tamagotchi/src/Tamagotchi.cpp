@@ -397,16 +397,29 @@ void Tamagotchi::findUnblockedDirection() {
         this->isMovementBlocked = true;
         // this->ts_blocked = 0; 
         // this->blocked_instructionIndex = 0;
+
+        // index = 0
+    } else {
+        // if millis() - ts_blocked < 200 {
+        // return
+        // }  
+        // index++
     }
+
+
     // TODO delay used here. change that
     // make measuremens
+    // if index == 0 {
     delay(200);
     dist[0] = myUltrasonicSensor.read();
     myServo.turn(SERVO_CENTER_RIGHT);
+    // }
     delay(200);
+    // if index == 1 {
     dist[1] = myUltrasonicSensor.read();
     if(dist[1] >= dist[0]) maxDistIndex = 1;
     myServo.turn(SERVO_CENTER_LEFT);
+    // }
     delay(200);
     dist[2] = myUltrasonicSensor.read();
     if(dist[2] >= dist[maxDistIndex]) maxDistIndex = 2;
