@@ -28,6 +28,10 @@ unsigned int timer_counter_max = 60 * 10;
 #define PIN_FEEDING_BUTTON 18
 
 #define BAUD_RATE 9600
+
+
+DeviceDriverSet_IRrecv irRemote;
+
 void setup()
 {
   Serial.begin(BAUD_RATE);
@@ -40,6 +44,8 @@ void setup()
 
   pinMode(PIN_FEEDING_BUTTON, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(PIN_FEEDING_BUTTON), interruptFeedingButton, RISING);
+
+  irRemote.DeviceDriverSet_IRrecv_Init();
 }
 
 void interruptFeedingButton(){
@@ -50,9 +56,16 @@ void loop()
 {
   //put your main code here, to run repeatedly :
   wdt_reset();
-  poorMansTimer();
+  // poorMansTimer();
 
-  myTamagotchi.loop();
+  // myTamagotchi.loop();
+
+  uint8_t x = 0;
+  irRemote.DeviceDriverSet_IRrecv_Get(&x);
+  if(x > 0) {
+    Serial.println((String) "received: "+x);
+  }
+
 }
 
 /**
