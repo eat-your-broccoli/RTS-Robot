@@ -38,7 +38,7 @@ void setup()
   Serial.print("Serial init at ");
   Serial.println(BAUD_RATE);
   
-  // setupTimers();
+  setupTimers();
   myTamagotchi.init(&Wire);
   wdt_enable(WDTO_2S);
 
@@ -56,16 +56,13 @@ void loop()
 {
   //put your main code here, to run repeatedly :
   wdt_reset();
-  // poorMansTimer();
-
-  // myTamagotchi.loop();
 
   uint8_t x = 0;
   irRemote.DeviceDriverSet_IRrecv_Get(&x);
   if(x > 0) {
     Serial.println((String) "received: "+x);
   }
-
+  myTamagotchi.loop();
 }
 
 /**
@@ -79,27 +76,18 @@ void setupTimers() {
   TCCR1B = 0;
   TCNT1 = 0;
 
-  // 100 Hz (16000000/((624+1)*256))
-  OCR1A = 624;
+  // 1 Hz (16000000/((15624+1)*1024))
+  OCR1A = 15624;
   // CTC
   TCCR1B |= (1 << WGM12);
-  // Prescaler 256
-  TCCR1B |= (1 << CS12);
+  // Prescaler 1024
+  TCCR1B |= (1 << CS12) | (1 << CS10);
   // Output Compare Match A Interrupt Enable
   TIMSK1 |= (1 << OCIE1A);
   interrupts();
-  Serial.println("Setup timer complete");
 }
 
-// ISR(TIMER1_COMPA_vect) // timer compare interrupt service routine
-// {
-//   myTamagotchi.onTick();
-// }
-
-void poorMansTimer() {
-  unsigned long time = millis();
-  if(time - lastTimestamp >= 1000) {
-    lastTimestamp = time;
-    myTamagotchi.onTick();
-  }
+ISR(TIMER1_COMPA_vect) // timer compare interrupt service routine
+{
+  myTamagotchi.onTick();
 }
