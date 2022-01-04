@@ -1,6 +1,7 @@
 #include "Tamagotchi.h"
 #include <EEPROM.h>
 #include "Face_Bitmaps.h"
+#include "IR_Buttons.h"
 
 #include "DeviceDriverSet_xxx0.h"
 
@@ -34,16 +35,26 @@
 
 #define FACE_UPDATE_COOLDOWN 10000
 
-DeviceDriverSet_Voltage AppVoltage2;
 // feeding cooldown
 #define FEEDING_COOLDOWN 10000 // 10 seconds
+#define PETTING_COOLDOWN 10000 // 10 seconds
+
+
+#define PETTING_AFFECTION_INC 15
 
 
 #define MIN_DISTANCE 20
 
-
-
 #define PIN_RANDOM_INIT A10
+
+// set to 1 to get message
+#define DEBUG_IR_RECEIVE 1
+#define DEBUG_NO_ORGANIC_MOVEMENT 1
+
+DeviceDriverSet_IRrecv irRemote;
+
+Tamagotchi myTamagotchi;
+
 /**
  * @brief Tamagotchi class
  * 
@@ -51,9 +62,6 @@ DeviceDriverSet_Voltage AppVoltage2;
  * includes sentiment like hunger, sleepyness and affection
  * 
  */
-
-Tamagotchi myTamagotchi;
-
 Tamagotchi::Tamagotchi()
 {
     this->sleepyness = 50;
@@ -92,6 +100,9 @@ void Tamagotchi::init(TwoWire *twi) {
         Serial.println(F("SSD1306 allocation failed.\nProgram execution will halt (Is the display connected correctly? Are large vars stored in Flash memory (full RAM causes I²C to 'time out')?)"));
         for(;;); // Don't proceed, loop forever
     }
+
+    irRemote.DeviceDriverSet_IRrecv_Init();
+
     displayFace(enum_face::awake);
 }
 
@@ -139,6 +150,10 @@ void Tamagotchi::loop()
     int hasAnythingChanged = 0;
     unsigned long currentMillis = millis();
 
+    // read data from remote
+    irReceive();
+    irReceiveRoutine();
+
     if (this->flag_read_battery)
     {
         hasAnythingChanged++;
@@ -181,10 +196,17 @@ void Tamagotchi::loop()
 
     if (this->flag_is_pet)
     {
-        hasAnythingChanged++;
-        // TODO increase affection
-        // TODO display happy symbol
-        // reset flags
+        if(this->affection < 100 && (currentMillis < previousMillisPetting 
+        ||  currentMillis - previousMillisPetting >= PETTING_COOLDOWN)) {
+            hasAnythingChanged++;
+            previousMillisPetting = currentMillis;
+            this->affection += 20;
+            if(this->affection > 100) this->affection = 100;
+
+            // TODO display happy symbol
+            // TODO do animation
+        }
+        
         this->flag_is_pet = 0;
     }
 
@@ -201,16 +223,7 @@ void Tamagotchi::loop()
     this->flag_is_pet = 0;
     this->flag_is_fed = 0;
     this->flag_read_battery = 0;
-    if (hasAnythingChanged > 0)
-    {
-        Serial.print("Hunger: ");
-        Serial.println(this->hunger);
-        Serial.print("Affection: ");
-        Serial.println(this->affection);
-        Serial.print("Sleepyness: ");
-        Serial.println(this->sleepyness);
-    }
-
+    
     if(this->flag_update_display == 0 && ((currentMillis - this->ts_face_update) > FACE_UPDATE_COOLDOWN || currentMillis < this->ts_face_update)) {
         chooseFace();
     }
@@ -306,6 +319,10 @@ uint8_t Tamagotchi::convertVoltToSleepyness(float voltage) {
  * like moving, turning, ... and a timespan during which the instruction has to be done
  */
 void Tamagotchi::organicMovement() {
+    #if defined DEBUG_NO_ORGANIC_MOVEMENT && DEBUG_NO_ORGANIC_MOVEMENT > 0
+        return;
+    #endif
+
     unsigned long time = millis();
     // check if last other action was at least n seconds in the past
     if(this->isOrganicMovement == false &&
@@ -568,4 +585,26 @@ void Tamagotchi::setIsFedFlag()
 {
     Serial.println("Button Click detected");
     this->flag_is_fed = 1;
+}
+
+void Tamagotchi::irReceive() {
+    if(irRemote.DeviceDriverSet_IRrecv_Get(&irRecData) == false) {
+        irRecData = 0;
+    }
+    #if DEBUG_IR_RECEIVE > 0 
+        if(this->irRecData > 0) Serial.println((String) "IR: "+(this->irRecData));
+    #endif
+}
+
+void Tamagotchi::irReceiveRoutine() {
+    if(irRecData == 0) return;
+    switch(irRecData) {
+        case IR_1: // petting
+            this->setIsFedFlag();
+            break;
+        case IR_2: 
+            this->flag_is_pet = 1;
+            break;
+        default: break;
+    }
 }
