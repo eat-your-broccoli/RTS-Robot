@@ -38,6 +38,7 @@ struct InstructionSet {
 };
 
 InstructionSet* createIS(bool blockDistMeasure, uint8_t length, Instruction (instr) []);
+InstructionSet** createIS_array(uint8_t length, InstructionSet (instr) []);
 
 extern InstructionSet *IS_FORWARD;
 extern InstructionSet *IS_STOP_60000;
@@ -45,4 +46,12 @@ extern InstructionSet *IS_STOP_60000;
 extern InstructionSet *IS_WIGGLE;
 extern InstructionSet *IS_SPIN_RIGHT;
 extern InstructionSet *IS_SPIN_LEFT;
+
+#define IS_ARRAY_PET_LENGTH 2
+extern InstructionSet *IS_ARRAY_PET[IS_ARRAY_PET_LENGTH];
+
+#define IS_ARRAY_FED_LENGTH 2
+extern InstructionSet *IS_ARRAY_FED[IS_ARRAY_FED_LENGTH];
+
+
 

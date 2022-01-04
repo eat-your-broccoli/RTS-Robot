@@ -189,7 +189,7 @@ void Tamagotchi::loop()
                 this->hunger = this->hunger - 20;
                 Serial.print("Feeding... Hunger at: "); Serial.println(this->hunger);
             }
-            // TODO display feeding symbol
+            this->setInstructionSet(IS_ARRAY_FED[random(0, IS_ARRAY_FED_LENGTH)]);
         }
         // reset flags
         this->flag_is_fed = 0;
@@ -205,7 +205,7 @@ void Tamagotchi::loop()
             if(this->affection > 100) this->affection = 100;
 
             // TODO display happy symbol
-            // TODO do animation
+            this->setInstructionSet(IS_ARRAY_PET[random(0, IS_ARRAY_PET_LENGTH)]);
         }
         
         this->flag_is_pet = 0;
@@ -219,19 +219,14 @@ void Tamagotchi::loop()
 
     organicMovement();
     
-    
-    // reset flags
-    this->flag_is_pet = 0;
-    this->flag_is_fed = 0;
-    this->flag_read_battery = 0;
-    
-    if(this->flag_update_display == 0 && ((currentMillis - this->ts_face_update) > FACE_UPDATE_COOLDOWN || currentMillis < this->ts_face_update)) {
+    if(this->flag_update_display == 0 && 
+    ((currentMillis - this->ts_face_update) > FACE_UPDATE_COOLDOWN || currentMillis < this->ts_face_update)) {
         chooseFace();
     }
-    
     if(this->flag_update_display != 0) {
         displayFace(this->display_index);
     }
+
     // reset flags
     this->flag_is_pet = 0;
     this->flag_is_fed = 0;
@@ -252,12 +247,9 @@ void Tamagotchi::readDataFromEEPROM()
     this->hunger = EEPROM.read(ADDR_TAMAGOTCHI_HUNGER);
 
     Serial.println("read values: ");
-    Serial.print("Hunger: ");
-    Serial.println(this->hunger);
-    Serial.print("Affection: ");
-    Serial.println(this->affection);
-    Serial.print("Sleepyness: ");
-    Serial.println(this->sleepyness);
+    Serial.print("Hunger: "); Serial.println(this->hunger);
+    Serial.print("Affection: "); Serial.println(this->affection);
+    Serial.print("Sleepyness: "); Serial.println(this->sleepyness);
 
     if (this->sleepyness == 0xFF)
         this->sleepyness = DEFAULT_SLEEPYNESS;
@@ -267,12 +259,9 @@ void Tamagotchi::readDataFromEEPROM()
         this->hunger = DEFAULT_HUNGER;
 
     Serial.println("corrected values: ");
-    Serial.print("Hunger: ");
-    Serial.println(this->hunger);
-    Serial.print("Affection: ");
-    Serial.println(this->affection);
-    Serial.print("Sleepyness: ");
-    Serial.println(this->sleepyness);
+    Serial.print("Hunger: "); Serial.println(this->hunger);
+    Serial.print("Affection: "); Serial.println(this->affection);
+    Serial.print("Sleepyness: "); Serial.println(this->sleepyness);
 }
 
 void Tamagotchi::writeDataToEEPROM()
@@ -611,7 +600,6 @@ void Tamagotchi::irReceiveRoutine() {
             this->flag_is_pet = 1;
             break;
         case IR_OK: 
-            // TODO clean load instruction set
             setInstructionSet(IS_STOP_60000);
             break;
         default: break;
