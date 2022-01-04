@@ -46,6 +46,8 @@ private:
     boolean VoltageDetectionStatus = false;
     
     unsigned long previousMillisFeeding;
+    unsigned long previousMillisPetting;
+    
 
     // if movement is blocked, e.g. obstacle detected by Ultrasonic sensor
     bool isMovementBlocked = false;
@@ -93,6 +95,9 @@ private:
     enum_face display_index_current = enum_face::init;
     volatile byte flag_button;
 
+    // ir remote data
+    uint8_t irRecData;
+
 public:
     Tamagotchi();
     void init(TwoWire *twi);
@@ -116,6 +121,9 @@ private:
     void displayFace(enum_face index);
     void setDisplayFace(enum_face index, uint8_t priority);
     void chooseFace();
+    void irReceive();
+    void irReceiveRoutine();
+    void setInstructionSet(InstructionSet *instrSet);
 };
 
 extern Tamagotchi myTamagotchi;

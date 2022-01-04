@@ -29,7 +29,7 @@ unsigned int timer_counter_max = 60 * 10;
 
 #define BAUD_RATE 9600
 
-volatile unsigned long c;
+
 
 void setup()
 {
@@ -53,8 +53,6 @@ void loop()
 {
   //put your main code here, to run repeatedly :
   wdt_reset();
-  
-  Serial.println(c);
   myTamagotchi.loop();
 }
 

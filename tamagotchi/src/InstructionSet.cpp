@@ -20,6 +20,14 @@ const Instruction PROGMEM INS_FORWARD = {
     1000
 };
 
+const Instruction PROGMEM INS_STOP_5000 = {
+    0b11,
+    0,
+    0,
+    255,
+    5000
+};
+
 const Instruction PROGMEM INS_BACKWARD = {
     0b00,
     SPEED_NORMAL,
@@ -59,6 +67,21 @@ const Instruction PROGMEM INS_TURN_RIGHT_1000 = {
     90,
     1000 
 };
+
+InstructionSet *IS_STOP_60000 = createIS(true, 12, (Instruction[12]){
+    INS_STOP_5000,
+    INS_STOP_5000,
+    INS_STOP_5000,
+    INS_STOP_5000,
+    INS_STOP_5000,
+    INS_STOP_5000,
+    INS_STOP_5000,
+    INS_STOP_5000,
+    INS_STOP_5000,
+    INS_STOP_5000,
+    INS_STOP_5000,
+    INS_STOP_5000,
+});
 
 InstructionSet *IS_FORWARD = createIS(false, 2, (Instruction[2]){
     INS_FORWARD,
