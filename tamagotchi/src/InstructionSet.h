@@ -21,6 +21,7 @@ struct Instruction {
     uint8_t R;
     uint8_t servo;
     uint16_t time;
+    uint16_t randomTime;
 };
 
 /**
@@ -50,8 +51,13 @@ extern InstructionSet *IS_SPIN_LEFT;
 #define IS_ARRAY_PET_LENGTH 2
 extern InstructionSet *IS_ARRAY_PET[IS_ARRAY_PET_LENGTH];
 
-#define IS_ARRAY_FED_LENGTH 2
+#define IS_ARRAY_FED_LENGTH 3
 extern InstructionSet *IS_ARRAY_FED[IS_ARRAY_FED_LENGTH];
+
+#define IS_ARRAY_ORGANIC_LENGTH 10
+extern InstructionSet *IS_ARRAY_ORGANIC[IS_ARRAY_ORGANIC_LENGTH];
+
+
 
 
 

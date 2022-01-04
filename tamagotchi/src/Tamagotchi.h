@@ -63,6 +63,9 @@ private:
     int isOrganicMovement = 0;
     // when started last movement instruction?
     unsigned long ts_move_instruction = 0;
+    // how long to wait until instruction is done
+    unsigned long move_time_instruction = 0;
+    
     // which instruction set currently is used
     int move_instructionSetIndex = 0;
     // the instruction as a pointer
