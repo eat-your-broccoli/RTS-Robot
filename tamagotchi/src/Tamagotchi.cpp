@@ -47,10 +47,11 @@
 
 #define PIN_RANDOM_INIT A10
 
-// set to 1 to get message
-#define DEBUG_IR_RECEIVE 1
-#define DEBUG_NO_ORGANIC_MOVEMENT 1
+// set to 1 to debug
+#define DEBUG_IR_RECEIVE 0
+#define DEBUG_NO_ORGANIC_MOVEMENT 0
 
+// IR Remote
 DeviceDriverSet_IRrecv irRemote;
 
 Tamagotchi myTamagotchi;
@@ -330,18 +331,22 @@ void Tamagotchi::organicMovement() {
         // wait until enough time has passed
         return;
     }
-    // check if obstacle is present
-    // if yes, stop. Turn a bit
-    uint16_t dist = myUltrasonicSensor.read();
-    // if ultrasonic sensor detects obstacle within 20cm of range
-    // Serial.println((String) "my distance is "+dist);
-    if(this->isMovementBlocked || isDistInRange(dist, 0, MIN_DISTANCE)) {
-        // Serial.println("movement is blocked");
-        findUnblockedDirection();
-        myServo.reset();
-        return;
-    }
 
+    // instruction set can disable distance measure
+    if(this->isOrganicMovement == false || this->move_instructionSet->blockDistMeasure != true) {
+        // check if obstacle is present
+        // if yes, stop. Turn a bit
+        uint16_t dist = myUltrasonicSensor.read();
+        // if ultrasonic sensor detects obstacle within 20cm of range
+        // Serial.println((String) "my distance is "+dist);
+        if(this->isMovementBlocked || isDistInRange(dist, 0, MIN_DISTANCE)) {
+            // Serial.println("movement is blocked");
+            findUnblockedDirection();
+            myServo.reset();
+            return;
+        }
+    }
+    
     // check if not already moving organically
     if(this->isOrganicMovement == 0) {
         // reset instruction set if it was not properly resetted
@@ -353,10 +358,7 @@ void Tamagotchi::organicMovement() {
     // load instruction set
     if(this->move_instructionSetIndex == -1) {
         Serial.println("loading instruction set");
-        this->move_instructionSetIndex = 1;
-        this->move_instructionSet = this->randomInstructionSet();
-        this->move_instructionIndex = -1;
-        this->ts_move_instruction = 0; // reset timestamp
+        this->setInstructionSet(this->randomInstructionSet());
     }
 
     Instruction *instr = (this->move_instructionSet->instr[this->move_instructionIndex]);
@@ -385,7 +387,10 @@ void Tamagotchi::organicMovement() {
     // execute instruction
     this->ts_move_instruction = time;
     myEngine.move(dirR, instr->R, dirL, instr->L);
-    myServo.turn(instr->servo);
+
+    // if instr is 255, it will turn randomly
+    if(instr->servo == 255) myServo.turn(random(15, 165));
+    else myServo.turn(instr->servo);
 }
 
 void Tamagotchi::stopOrganicMovement() {
@@ -605,6 +610,18 @@ void Tamagotchi::irReceiveRoutine() {
         case IR_2: 
             this->flag_is_pet = 1;
             break;
+        case IR_OK: 
+            // TODO clean load instruction set
+            setInstructionSet(IS_STOP_60000);
+            break;
         default: break;
     }
+}
+
+void Tamagotchi::setInstructionSet(InstructionSet *instrSet) {
+    this->move_instructionSet = instrSet;
+    this->isOrganicMovement = 1;
+    this->move_instructionIndex = -1;
+    this->move_instructionSetIndex = 1;
+    this->ts_move_instruction = 0;
 }

@@ -123,6 +123,7 @@ private:
     void chooseFace();
     void irReceive();
     void irReceiveRoutine();
+    void setInstructionSet(InstructionSet *instrSet);
 };
 
 extern Tamagotchi myTamagotchi;
