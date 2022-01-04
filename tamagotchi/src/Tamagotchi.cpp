@@ -341,6 +341,7 @@ void Tamagotchi::organicMovement() {
         // reset instruction set if it was not properly resetted
         this->move_instructionSetIndex = -1;
         this->ts_move_instruction = 0;
+        this->move_time_instruction = 0;
         this->isOrganicMovement = 1;
     }
 
@@ -350,11 +351,11 @@ void Tamagotchi::organicMovement() {
         this->setInstructionSet(this->randomInstructionSet());
     }
 
-    Instruction *instr = (this->move_instructionSet->instr[this->move_instructionIndex]);
+    // Instruction *instr = (this->move_instructionSet->instr[this->move_instructionIndex]);
 
     // TODO timer overflows
     // check if current instruction's time has passed
-    if(this->ts_move_instruction != 0 && time - this->ts_move_instruction <= (instr->time)) {
+    if(this->ts_move_instruction != 0 && time - this->ts_move_instruction <= (move_time_instruction)) {
         // do nothing
         return;
     }
@@ -367,7 +368,8 @@ void Tamagotchi::organicMovement() {
     }
 
     Serial.println("loading next instruction");
-    instr = (this->move_instructionSet->instr[this->move_instructionIndex]);
+    Instruction *instr = (this->move_instructionSet->instr[this->move_instructionIndex]);
+    this->move_time_instruction = instr->time + random(0, instr->randomTime);
 
     // decode direction instruction
     uint8_t dirR = (instr->dir & 0b01); // 11 AND 01 = 01 (forward right); 10 AND 01 = 00 (backward right)
@@ -388,6 +390,7 @@ void Tamagotchi::stopOrganicMovement() {
     this->isOrganicMovement = 0;
     this->move_instructionIndex = 0;
     this->move_instructionSetIndex = -1;
+    this->move_time_instruction = 0;
     myServo.reset();
 }
 

@@ -110,19 +110,19 @@ InstructionSet *IS_STOP_60000 = createIS(true, 12, (Instruction[12]){
 
 InstructionSet *IS_FORWARD = createIS(false, 2, (Instruction[2]){INS_FORWARD, INS_FORWARD});
 
-InstructionSet *IS_SPIN_RIGHT = createIS(false, 4, (Instruction[4]){INS_TURN_RIGHT_FAST_1000, INS_TURN_RIGHT_FAST_1000, INS_TURN_RIGHT_FAST_1000, INS_TURN_RIGHT_FAST_1000});
+InstructionSet *IS_SPIN_RIGHT = createIS(true, 4, (Instruction[4]){INS_TURN_RIGHT_FAST_1000, INS_TURN_RIGHT_FAST_1000, INS_TURN_RIGHT_FAST_1000, INS_TURN_RIGHT_FAST_1000});
 
-InstructionSet *IS_SPIN_LEFT = createIS(false, 4, (Instruction[4]){INS_TURN_LEFT_FAST_1000, INS_TURN_LEFT_FAST_1000, INS_TURN_LEFT_FAST_1000, INS_TURN_LEFT_FAST_1000});
+InstructionSet *IS_SPIN_LEFT = createIS(true, 4, (Instruction[4]){INS_TURN_LEFT_FAST_1000, INS_TURN_LEFT_FAST_1000, INS_TURN_LEFT_FAST_1000, INS_TURN_LEFT_FAST_1000});
 
-InstructionSet *IS_SPIN_RIGHT_DELAYED = createIS(false, 6, (Instruction[6]){INS_STOP_5000, INS_TURN_RIGHT_FAST_1000, INS_TURN_RIGHT_FAST_1000, INS_TURN_RIGHT_FAST_1000, INS_TURN_RIGHT_FAST_1000, INS_STOP_1000});
+InstructionSet *IS_SPIN_RIGHT_DELAYED = createIS(true, 6, (Instruction[6]){INS_STOP_5000, INS_TURN_RIGHT_FAST_1000, INS_TURN_RIGHT_FAST_1000, INS_TURN_RIGHT_FAST_1000, INS_TURN_RIGHT_FAST_1000, INS_STOP_1000});
 
-InstructionSet *IS_SPIN_LEFT_DELAYED = createIS(false, 6, (Instruction[6]){INS_STOP_5000, INS_TURN_LEFT_FAST_1000, INS_TURN_LEFT_FAST_1000, INS_TURN_LEFT_FAST_1000, INS_TURN_LEFT_FAST_1000, INS_STOP_1000});
+InstructionSet *IS_SPIN_LEFT_DELAYED = createIS(true, 6, (Instruction[6]){INS_STOP_5000, INS_TURN_LEFT_FAST_1000, INS_TURN_LEFT_FAST_1000, INS_TURN_LEFT_FAST_1000, INS_TURN_LEFT_FAST_1000, INS_STOP_1000});
 
-InstructionSet *IS_WIGGLE = createIS(false, 9, (Instruction[9]){INS_TURN_LEFT_500, INS_TURN_RIGHT_1000, INS_TURN_LEFT_1000, INS_TURN_RIGHT_1000, INS_TURN_LEFT_1000, INS_TURN_RIGHT_1000, INS_TURN_LEFT_1000, INS_TURN_RIGHT_500, INS_STOP_1000});
+InstructionSet *IS_WIGGLE = createIS(true, 9, (Instruction[9]){INS_TURN_LEFT_500, INS_TURN_RIGHT_1000, INS_TURN_LEFT_1000, INS_TURN_RIGHT_1000, INS_TURN_LEFT_1000, INS_TURN_RIGHT_1000, INS_TURN_LEFT_1000, INS_TURN_RIGHT_500, INS_STOP_1000});
 
-InstructionSet *IS_WIGGLE_DELAYED = createIS(false, 10, (Instruction[10]){INS_STOP_2000, INS_TURN_LEFT_500, INS_TURN_RIGHT_1000, INS_TURN_LEFT_1000, INS_TURN_RIGHT_1000, INS_TURN_LEFT_1000, INS_TURN_RIGHT_1000, INS_TURN_LEFT_1000, INS_TURN_RIGHT_500, INS_STOP_1000});
+InstructionSet *IS_WIGGLE_DELAYED = createIS(true, 10, (Instruction[10]){INS_STOP_2000, INS_TURN_LEFT_500, INS_TURN_RIGHT_1000, INS_TURN_LEFT_1000, INS_TURN_RIGHT_1000, INS_TURN_LEFT_1000, INS_TURN_RIGHT_1000, INS_TURN_LEFT_1000, INS_TURN_RIGHT_500, INS_STOP_1000});
 
-InstructionSet *IS_WIGGLE_DELAYED_FAST = createIS(false, 10, (Instruction[10]){
+InstructionSet *IS_WIGGLE_DELAYED_FAST = createIS(true, 10, (Instruction[10]){
                                                                  INS_STOP_2000,
                                                                  INS_TURN_LEFT_FAST_500,
                                                                  INS_TURN_RIGHT_FAST_1000,
@@ -135,7 +135,7 @@ InstructionSet *IS_WIGGLE_DELAYED_FAST = createIS(false, 10, (Instruction[10]){
                                                                  INS_STOP_1000,
                                                              });
 
-InstructionSet *IS_WIGGLE_DELAYED_FAST_500 = createIS(false, 10, (Instruction[10]){
+InstructionSet *IS_WIGGLE_DELAYED_FAST_500 = createIS(true, 10, (Instruction[10]){
                                                                      INS_STOP_1000,
                                                                      INS_TURN_RIGHT_FAST_250,
                                                                      INS_TURN_LEFT_FAST_500,
@@ -148,7 +148,7 @@ InstructionSet *IS_WIGGLE_DELAYED_FAST_500 = createIS(false, 10, (Instruction[10
                                                                      INS_STOP_1000,
                                                                  });
 
-InstructionSet *IS_WIGGLE_DELAYED_FAST_250 = createIS(false, 10, (Instruction[10]){
+InstructionSet *IS_WIGGLE_DELAYED_FAST_250 = createIS(true, 10, (Instruction[10]){
                                                                      INS_STOP_1000,
                                                                      INS_TURN_LEFT_FAST_125,
                                                                      INS_TURN_RIGHT_FAST_250,
