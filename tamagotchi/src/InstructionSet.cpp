@@ -79,6 +79,22 @@ const Instruction PROGMEM INS_TURN_LEFT_FAST_500 = {
     500 
 };
 
+const Instruction PROGMEM INS_TURN_LEFT_FAST_250 = {
+    0b01,
+    SPEED_FAST,
+    SPEED_FAST,
+    90,
+    250 
+};
+
+const Instruction PROGMEM INS_TURN_LEFT_FAST_125 = {
+    0b01,
+    SPEED_FAST,
+    SPEED_FAST,
+    90,
+    125 
+};
+
 const Instruction PROGMEM INS_TURN_LEFT_1000 = {
     0b01,
     SPEED_NORMAL,
@@ -109,6 +125,22 @@ const Instruction PROGMEM INS_TURN_RIGHT_FAST_500 = {
     SPEED_FAST,
     90,
     500 
+};
+
+const Instruction PROGMEM INS_TURN_RIGHT_FAST_250 = {
+    0b10,
+    SPEED_FAST,
+    SPEED_FAST,
+    90,
+    250 
+};
+
+const Instruction PROGMEM INS_TURN_RIGHT_FAST_125 = {
+    0b10,
+    SPEED_FAST,
+    SPEED_FAST,
+    90,
+    125 
 };
 
 const Instruction PROGMEM INS_TURN_RIGHT_1000 = {
@@ -219,13 +251,41 @@ InstructionSet *IS_WIGGLE_DELAYED_FAST = createIS(false, 10, (Instruction[10]){
     INS_STOP_1000,
 });
 
+InstructionSet *IS_WIGGLE_DELAYED_FAST_500 = createIS(false, 10, (Instruction[10]){
+    INS_STOP_1000,
+    INS_TURN_RIGHT_FAST_250,
+    INS_TURN_LEFT_FAST_500,
+    INS_TURN_RIGHT_FAST_500,
+    INS_TURN_LEFT_FAST_500,
+    INS_TURN_RIGHT_FAST_500,
+    INS_TURN_LEFT_FAST_500,
+    INS_TURN_RIGHT_FAST_500,
+    INS_TURN_LEFT_FAST_500,
+    INS_STOP_1000,
+});
+
+InstructionSet *IS_WIGGLE_DELAYED_FAST_250 = createIS(false, 10, (Instruction[10]){
+    INS_STOP_1000,
+    INS_TURN_LEFT_FAST_125,
+    INS_TURN_RIGHT_FAST_250,
+    INS_TURN_LEFT_FAST_250,
+    INS_TURN_RIGHT_FAST_250,
+    INS_TURN_LEFT_FAST_250,
+    INS_TURN_RIGHT_FAST_250,
+    INS_TURN_LEFT_FAST_250,
+    INS_TURN_RIGHT_FAST_125,
+    INS_STOP_1000,
+});
+
 InstructionSet* IS_ARRAY_PET[IS_ARRAY_PET_LENGTH] = {
     IS_SPIN_LEFT_DELAYED,
     IS_SPIN_RIGHT_DELAYED,
 };
 
 InstructionSet* IS_ARRAY_FED[IS_ARRAY_FED_LENGTH] = {
-    IS_WIGGLE_DELAYED,
-    IS_WIGGLE_DELAYED_FAST
+    // IS_WIGGLE_DELAYED,
+    // IS_WIGGLE_DELAYED_FAST,
+    IS_WIGGLE_DELAYED_FAST_500,
+    IS_WIGGLE_DELAYED_FAST_250,
 };
 
