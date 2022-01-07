@@ -7,28 +7,12 @@
  * @FilePath: 
  */
 #include <avr/wdt.h>
-// #include "ApplicationFunctionSet_xxx0.h"
 #include <Wire.h>
-#include "ApplicationFunctionSet_xxx0.h"
 #include "Tamagotchi.h"
-#include "DeviceDriverSet_xxx0.h"
-
-// will be incremented every 1 sec
-volatile unsigned int timer_counter = 0;
-unsigned long lastTimestamp = 0;
-unsigned int timer_minute = 60;
-
-unsigned int timer_three_minutes = 3 * 60;
-
-// clear timer every 10 minutes
-unsigned int timer_counter_max = 60 * 10;
-
-#define MAX_SERVOS  4
 
 #define PIN_FEEDING_BUTTON 18
 
 #define BAUD_RATE 9600
-
 
 
 void setup()

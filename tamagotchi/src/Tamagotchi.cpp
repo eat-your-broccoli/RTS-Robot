@@ -33,7 +33,8 @@
 #define VOLT_BATTERY_UPPER_LIMIT 7.0
 #define VOLT_BATTERY_LOWER_LIMIT 4.0
 
-#define FACE_UPDATE_COOLDOWN 10000
+// how long one face stays on
+#define FACE_UPDATE_COOLDOWN 4000
 
 // feeding cooldown
 #define FEEDING_COOLDOWN 10000 // 10 seconds
@@ -50,6 +51,7 @@
 // set to 1 to debug
 #define DEBUG_IR_RECEIVE 0
 #define DEBUG_NO_ORGANIC_MOVEMENT 0
+#define DEBUG_ADVANCED_IR_CONTROL 1 // allows control of hunger, affection via remote
 
 // IR Remote
 DeviceDriverSet_IRrecv irRemote;
@@ -189,7 +191,8 @@ void Tamagotchi::loop()
                 this->hunger = this->hunger - 20;
                 Serial.print("Feeding... Hunger at: "); Serial.println(this->hunger);
             }
-            // TODO display feeding symbol
+            this->setDisplayFace(enum_face::eating, 30);
+            this->setInstructionSet(IS_ARRAY_FED[random(0, IS_ARRAY_FED_LENGTH)]);
         }
         // reset flags
         this->flag_is_fed = 0;
@@ -204,8 +207,8 @@ void Tamagotchi::loop()
             this->affection += 20;
             if(this->affection > 100) this->affection = 100;
 
-            // TODO display happy symbol
-            // TODO do animation
+            this->setDisplayFace(enum_face::petted, 30);
+            this->setInstructionSet(IS_ARRAY_PET[random(0, IS_ARRAY_PET_LENGTH)]);
         }
         
         this->flag_is_pet = 0;
@@ -219,19 +222,14 @@ void Tamagotchi::loop()
 
     organicMovement();
     
-    
-    // reset flags
-    this->flag_is_pet = 0;
-    this->flag_is_fed = 0;
-    this->flag_read_battery = 0;
-    
-    if(this->flag_update_display == 0 && ((currentMillis - this->ts_face_update) > FACE_UPDATE_COOLDOWN || currentMillis < this->ts_face_update)) {
+    if(this->flag_update_display == 0 && 
+    ((currentMillis - this->ts_face_update) > FACE_UPDATE_COOLDOWN || currentMillis < this->ts_face_update)) {
         chooseFace();
     }
-    
     if(this->flag_update_display != 0) {
         displayFace(this->display_index);
     }
+
     // reset flags
     this->flag_is_pet = 0;
     this->flag_is_fed = 0;
@@ -252,12 +250,9 @@ void Tamagotchi::readDataFromEEPROM()
     this->hunger = EEPROM.read(ADDR_TAMAGOTCHI_HUNGER);
 
     Serial.println("read values: ");
-    Serial.print("Hunger: ");
-    Serial.println(this->hunger);
-    Serial.print("Affection: ");
-    Serial.println(this->affection);
-    Serial.print("Sleepyness: ");
-    Serial.println(this->sleepyness);
+    Serial.print("Hunger: "); Serial.println(this->hunger);
+    Serial.print("Affection: "); Serial.println(this->affection);
+    Serial.print("Sleepyness: "); Serial.println(this->sleepyness);
 
     if (this->sleepyness == 0xFF)
         this->sleepyness = DEFAULT_SLEEPYNESS;
@@ -267,12 +262,9 @@ void Tamagotchi::readDataFromEEPROM()
         this->hunger = DEFAULT_HUNGER;
 
     Serial.println("corrected values: ");
-    Serial.print("Hunger: ");
-    Serial.println(this->hunger);
-    Serial.print("Affection: ");
-    Serial.println(this->affection);
-    Serial.print("Sleepyness: ");
-    Serial.println(this->sleepyness);
+    Serial.print("Hunger: "); Serial.println(this->hunger);
+    Serial.print("Affection: "); Serial.println(this->affection);
+    Serial.print("Sleepyness: "); Serial.println(this->sleepyness);
 }
 
 void Tamagotchi::writeDataToEEPROM()
@@ -352,6 +344,7 @@ void Tamagotchi::organicMovement() {
         // reset instruction set if it was not properly resetted
         this->move_instructionSetIndex = -1;
         this->ts_move_instruction = 0;
+        this->move_time_instruction = 0;
         this->isOrganicMovement = 1;
     }
 
@@ -361,11 +354,11 @@ void Tamagotchi::organicMovement() {
         this->setInstructionSet(this->randomInstructionSet());
     }
 
-    Instruction *instr = (this->move_instructionSet->instr[this->move_instructionIndex]);
+    // Instruction *instr = (this->move_instructionSet->instr[this->move_instructionIndex]);
 
     // TODO timer overflows
     // check if current instruction's time has passed
-    if(this->ts_move_instruction != 0 && time - this->ts_move_instruction <= (instr->time)) {
+    if(this->ts_move_instruction != 0 && time - this->ts_move_instruction <= (move_time_instruction)) {
         // do nothing
         return;
     }
@@ -378,7 +371,8 @@ void Tamagotchi::organicMovement() {
     }
 
     Serial.println("loading next instruction");
-    instr = (this->move_instructionSet->instr[this->move_instructionIndex]);
+    Instruction *instr = (this->move_instructionSet->instr[this->move_instructionIndex]);
+    this->move_time_instruction = instr->time + random(0, instr->randomTime);
 
     // decode direction instruction
     uint8_t dirR = (instr->dir & 0b01); // 11 AND 01 = 01 (forward right); 10 AND 01 = 00 (backward right)
@@ -399,6 +393,7 @@ void Tamagotchi::stopOrganicMovement() {
     this->isOrganicMovement = 0;
     this->move_instructionIndex = 0;
     this->move_instructionSetIndex = -1;
+    this->move_time_instruction = 0;
     myServo.reset();
 }
 
@@ -545,6 +540,18 @@ void Tamagotchi::displayFace(enum_face index) {
             display.drawBitmap(0,0, FACE_HUNGRY, SCREEN_WIDTH, SCREEN_HEIGHT, 1);
             break;
         }
+        case enum_face::petted: {
+            display.drawBitmap(0,0, FACE_PETTED, SCREEN_WIDTH, SCREEN_HEIGHT, 1);
+            break;
+        }
+        case enum_face::pleading: {
+            display.drawBitmap(0,0, FACE_PLEADING, SCREEN_WIDTH, SCREEN_HEIGHT, 1);
+            break;
+        }
+        case enum_face::eating: {
+            display.drawBitmap(0,0, FACE_EATING, SCREEN_WIDTH, SCREEN_HEIGHT, 1);
+            break;
+        }
         default: 
             Serial.println("UNKNOWN FACE !!!");
     }
@@ -583,7 +590,7 @@ void Tamagotchi::chooseFace() {
         setDisplayFace(enum_face::neutral, 17);
         return;
     }
-    setDisplayFace(enum_face::happy, 0);
+    setDisplayFace(enum_face::happy, 5);
 }
 
 void Tamagotchi::setIsFedFlag()
@@ -610,8 +617,24 @@ void Tamagotchi::irReceiveRoutine() {
         case IR_2: 
             this->flag_is_pet = 1;
             break;
+
+        #ifdef DEBUG_ADVANCED_IR_CONTROL && DEBUG_ADVANCED_IR_CONTROL > 0
+        case IR_7: 
+            this->writeDataToEEPROM();
+            break;
+        case IR_8: 
+            Serial.println("lowering affection");
+            this->affection -= 20;
+            if(this->affection < 0) this->affection = 20;
+            break;
+        case IR_9: 
+            Serial.println("increasing hunger");
+            this->hunger += 20;
+            if(this->hunger >100) this->hunger = 100;
+            break;
+        #endif
+
         case IR_OK: 
-            // TODO clean load instruction set
             setInstructionSet(IS_STOP_60000);
             break;
         default: break;
