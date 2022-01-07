@@ -33,7 +33,8 @@
 #define VOLT_BATTERY_UPPER_LIMIT 7.0
 #define VOLT_BATTERY_LOWER_LIMIT 4.0
 
-#define FACE_UPDATE_COOLDOWN 10000
+// how long one face stays on
+#define FACE_UPDATE_COOLDOWN 4000
 
 // feeding cooldown
 #define FEEDING_COOLDOWN 10000 // 10 seconds
@@ -50,6 +51,7 @@
 // set to 1 to debug
 #define DEBUG_IR_RECEIVE 0
 #define DEBUG_NO_ORGANIC_MOVEMENT 0
+#define DEBUG_ADVANCED_IR_CONTROL 1 // allows control of hunger, affection via remote
 
 // IR Remote
 DeviceDriverSet_IRrecv irRemote;
@@ -615,6 +617,23 @@ void Tamagotchi::irReceiveRoutine() {
         case IR_2: 
             this->flag_is_pet = 1;
             break;
+
+        #ifdef DEBUG_ADVANCED_IR_CONTROL && DEBUG_ADVANCED_IR_CONTROL > 0
+        case IR_7: 
+            this->writeDataToEEPROM();
+            break;
+        case IR_8: 
+            Serial.println("lowering affection");
+            this->affection -= 20;
+            if(this->affection < 0) this->affection = 20;
+            break;
+        case IR_9: 
+            Serial.println("increasing hunger");
+            this->hunger += 20;
+            if(this->hunger >100) this->hunger = 100;
+            break;
+        #endif
+
         case IR_OK: 
             setInstructionSet(IS_STOP_60000);
             break;
