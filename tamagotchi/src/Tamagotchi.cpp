@@ -189,6 +189,7 @@ void Tamagotchi::loop()
                 this->hunger = this->hunger - 20;
                 Serial.print("Feeding... Hunger at: "); Serial.println(this->hunger);
             }
+            this->setDisplayFace(enum_face::eating, 30);
             this->setInstructionSet(IS_ARRAY_FED[random(0, IS_ARRAY_FED_LENGTH)]);
         }
         // reset flags
@@ -204,7 +205,7 @@ void Tamagotchi::loop()
             this->affection += 20;
             if(this->affection > 100) this->affection = 100;
 
-            // TODO display happy symbol
+            this->setDisplayFace(enum_face::petted, 30);
             this->setInstructionSet(IS_ARRAY_PET[random(0, IS_ARRAY_PET_LENGTH)]);
         }
         
@@ -537,6 +538,18 @@ void Tamagotchi::displayFace(enum_face index) {
             display.drawBitmap(0,0, FACE_HUNGRY, SCREEN_WIDTH, SCREEN_HEIGHT, 1);
             break;
         }
+        case enum_face::petted: {
+            display.drawBitmap(0,0, FACE_PETTED, SCREEN_WIDTH, SCREEN_HEIGHT, 1);
+            break;
+        }
+        case enum_face::pleading: {
+            display.drawBitmap(0,0, FACE_PLEADING, SCREEN_WIDTH, SCREEN_HEIGHT, 1);
+            break;
+        }
+        case enum_face::eating: {
+            display.drawBitmap(0,0, FACE_EATING, SCREEN_WIDTH, SCREEN_HEIGHT, 1);
+            break;
+        }
         default: 
             Serial.println("UNKNOWN FACE !!!");
     }
@@ -575,7 +588,7 @@ void Tamagotchi::chooseFace() {
         setDisplayFace(enum_face::neutral, 17);
         return;
     }
-    setDisplayFace(enum_face::happy, 0);
+    setDisplayFace(enum_face::happy, 5);
 }
 
 void Tamagotchi::setIsFedFlag()
