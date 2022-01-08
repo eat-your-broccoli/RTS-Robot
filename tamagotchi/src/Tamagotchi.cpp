@@ -75,7 +75,7 @@ Tamagotchi::Tamagotchi()
 
 void Tamagotchi::init(TwoWire *twi) {
     Serial.println("reading data from EEPROM...");
-    // readDataFromEEPROM();
+    readDataFromEEPROM();
     Serial.println("done reading data from EEPROM");
 
     pinMode(PIN_RANDOM_INIT, INPUT);
