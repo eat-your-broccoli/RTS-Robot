@@ -149,7 +149,9 @@ void Tamagotchi::loop()
         Serial.println(batteryLevel);
         Serial.print("sleepyness = ");
         Serial.println(sleepyness);
-        
+        if (this->sleepyness = 0){
+            LowPower.sleep();
+        } 
         this->flag_read_battery = 0;
     }
 

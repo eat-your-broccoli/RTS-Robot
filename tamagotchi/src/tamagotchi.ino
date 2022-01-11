@@ -26,6 +26,7 @@ unsigned int timer_counter_max = 60 * 10;
 #define MAX_SERVOS  4
 
 #define PIN_FEEDING_BUTTON 18
+#define PIN_SEEPING_BUTTON 20 // select free interrupt pin
 
 #define BAUD_RATE 9600
 void setup()
@@ -40,6 +41,7 @@ void setup()
 
   pinMode(PIN_FEEDING_BUTTON, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(PIN_FEEDING_BUTTON), interruptFeedingButton, RISING);
+  LowPower.attachInterruptWakeup(digitalPinToInterrupt(PIN_SEEPING_BUTTON), , RISING);
 }
 
 void interruptFeedingButton(){

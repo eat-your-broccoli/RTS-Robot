@@ -13,6 +13,7 @@
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
+#include <ArduinoLowPower.h>
 
 #ifndef SCREEN_ADDRESS
 #define SCREEN_ADDRESS 0x3C
