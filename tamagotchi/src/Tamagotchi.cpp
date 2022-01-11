@@ -487,14 +487,7 @@ boolean Tamagotchi::isDistInRange(unsigned int dist, unsigned int min, unsigned 
 }
 
 InstructionSet* Tamagotchi::randomInstructionSet() {
-    uint8_t rand = random(0, 10);
-    switch(rand) {
-        case 0: return IS_FORWARD;
-        case 1: return IS_SPIN_RIGHT;
-        case 2: return IS_SPIN_LEFT;
-        case 3: return IS_WIGGLE;
-        default: return IS_FORWARD;
-    }
+    return IS_ARRAY_ORGANIC[random(0, IS_ARRAY_ORGANIC_LENGTH)];
 }
 
 /* @brief displays the face
@@ -660,12 +653,16 @@ void Tamagotchi::readTouchSensor() {
         if(this->touchCounter > 0) this->touchCounter--;
         return;
     }
-    this->touchCounter++;
-    if(this->touchCounter == 5) {
-        setInstructionSet(IS_STOP_4000);
+    if((millis() < previousMillisPetting 
+        ||  millis() - previousMillisPetting >= PETTING_COOLDOWN)) {
+        this->touchCounter++;
+        if(this->touchCounter == 5) {
+            setInstructionSet(IS_STOP_4000);
+        }
+        if(this->touchCounter > 60) {
+            this->flag_is_pet = 1;
+            this->touchCounter = 0;
+        }
     }
-    if(this->touchCounter > 60) {
-        this->flag_is_pet = 1;
-        this->touchCounter = 0;
-    }
+    
 }
