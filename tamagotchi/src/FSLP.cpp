@@ -85,5 +85,4 @@ boolean FSLP::isTouch() {
         return true;
     }
     return false;
-    // int position = myFSLP.getPosition();
 }

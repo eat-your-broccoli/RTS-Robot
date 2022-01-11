@@ -5,6 +5,7 @@
 
 #include "DeviceDriverSet_xxx0.h"
 #include "FSLP.h"
+#include "ITR20001.h"
 
 #ifndef DEBUG
 // comment next line out if you don't want debug messages
@@ -85,11 +86,12 @@ void Tamagotchi::init(TwoWire *twi) {
     myUltrasonicSensor.init();
     myEngine.init();
     myServo.init();
+    myITR.init();
 
     myServo.turn(SERVO_CENTER_RIGHT);
-    delay(500);
+    delay(200);
     myServo.turn(SERVO_CENTER_LEFT);
-    delay(500);
+    delay(200);
     myServo.reset();
        
     Serial.println("init AppVoltage ...");
@@ -328,6 +330,20 @@ void Tamagotchi::organicMovement() {
         // wait until enough time has passed
         return;
     }
+
+    if(myITR.isTakenOffGround()) {
+        boolean isOffGrund = true;
+        // sample over 10 rounds to filter bead readings
+        for (int i = 0; i< 10; i++) {
+            isOffGrund = isOffGrund && myITR.isTakenOffGround();
+        }
+        if(isOffGrund) {
+            stopOrganicMovement();
+            setDisplayFace(enum_face::pleading, 10);
+            return;
+        }
+    }
+
 
     // instruction set can disable distance measure
     if(this->isOrganicMovement == false || this->move_instructionSet->blockDistMeasure != true) {
@@ -600,7 +616,6 @@ void Tamagotchi::chooseFace() {
 
 void Tamagotchi::setIsFedFlag()
 {
-    Serial.println("Button Click detected");
     this->flag_is_fed = 1;
 }
 
