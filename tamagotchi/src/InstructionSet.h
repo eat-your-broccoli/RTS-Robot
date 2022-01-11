@@ -43,6 +43,9 @@ InstructionSet** createIS_array(uint8_t length, InstructionSet (instr) []);
 
 extern InstructionSet *IS_FORWARD;
 extern InstructionSet *IS_STOP_60000;
+extern InstructionSet *IS_STOP_2000;
+extern InstructionSet *IS_STOP_4000;
+
 
 extern InstructionSet *IS_WIGGLE;
 extern InstructionSet *IS_SPIN_RIGHT;
