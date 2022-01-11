@@ -171,6 +171,44 @@ InstructionSet *IS_WIGGLE_DELAYED_FAST_250 = createIS(true, 10, (Instruction[10]
                                                                      INS_STOP_1000,
                                                                  });
 
+InstructionSet * IS_MOVEMENT_FWD_L_1 = createIS(false, 1,  (Instruction[1]){ FWD_LEFT_2});
+InstructionSet * IS_MOVEMENT_FWD_L_2 = createIS(false, 1,  (Instruction[1]){ FWD_LEFT_5});
+InstructionSet * IS_MOVEMENT_FWD_L_3 = createIS(false, 1,  (Instruction[1]){ FWD_LEFT_7});
+InstructionSet * IS_MOVEMENT_FWD_L_4 = createIS(false, 1,  (Instruction[1]){ FWD_LEFT_10});
+InstructionSet * IS_MOVEMENT_FWD_L_5 = createIS(false, 1,  (Instruction[1]){ FWD_LEFT_20});
+InstructionSet * IS_MOVEMENT_FWD_L_6 = createIS(false, 1,  (Instruction[1]){ FWD_LEFT_30});
+InstructionSet * IS_MOVEMENT_FWD_L_7 = createIS(false, 1,  (Instruction[1]){ FWD_LEFT_40});
+
+InstructionSet * IS_MOVEMENT_BWD_L_1 = createIS(false, 1,  (Instruction[1]){ BWD_LEFT_2});
+InstructionSet * IS_MOVEMENT_BWD_L_2 = createIS(false, 1,  (Instruction[1]){ BWD_LEFT_5});
+InstructionSet * IS_MOVEMENT_BWD_L_3 = createIS(false, 1,  (Instruction[1]){ BWD_LEFT_7});
+InstructionSet * IS_MOVEMENT_BWD_L_4 = createIS(false, 1,  (Instruction[1]){ BWD_LEFT_10});
+InstructionSet * IS_MOVEMENT_BWD_L_5 = createIS(false, 1,  (Instruction[1]){ BWD_LEFT_20});
+InstructionSet * IS_MOVEMENT_BWD_L_6 = createIS(false, 1,  (Instruction[1]){ BWD_LEFT_30});
+InstructionSet * IS_MOVEMENT_BWD_L_7 = createIS(false, 1,  (Instruction[1]){ BWD_LEFT_40});
+
+InstructionSet * IS_MOVEMENT_FWD_R_1 = createIS(false, 1,  (Instruction[1]){ FWD_RIGHT_2});
+InstructionSet * IS_MOVEMENT_FWD_R_2 = createIS(false, 1,  (Instruction[1]){ FWD_RIGHT_5});
+InstructionSet * IS_MOVEMENT_FWD_R_3 = createIS(false, 1,  (Instruction[1]){ FWD_RIGHT_7});
+InstructionSet * IS_MOVEMENT_FWD_R_4 = createIS(false, 1,  (Instruction[1]){ FWD_RIGHT_10});
+InstructionSet * IS_MOVEMENT_FWD_R_5 = createIS(false, 1,  (Instruction[1]){ FWD_RIGHT_20});
+InstructionSet * IS_MOVEMENT_FWD_R_6 = createIS(false, 1,  (Instruction[1]){ FWD_RIGHT_30});
+InstructionSet * IS_MOVEMENT_FWD_R_7 = createIS(false, 1,  (Instruction[1]){ FWD_RIGHT_40});
+
+InstructionSet * IS_MOVEMENT_BWD_R_1 = createIS(false, 1,  (Instruction[1]){ BWD_RIGHT_2});
+InstructionSet * IS_MOVEMENT_BWD_R_2 = createIS(false, 1,  (Instruction[1]){ BWD_RIGHT_5});
+InstructionSet * IS_MOVEMENT_BWD_R_3 = createIS(false, 1,  (Instruction[1]){ BWD_RIGHT_7});
+InstructionSet * IS_MOVEMENT_BWD_R_4 = createIS(false, 1,  (Instruction[1]){ BWD_RIGHT_10});
+InstructionSet * IS_MOVEMENT_BWD_R_5 = createIS(false, 1,  (Instruction[1]){ BWD_RIGHT_20});
+InstructionSet * IS_MOVEMENT_BWD_R_6 = createIS(false, 1,  (Instruction[1]){ BWD_RIGHT_30});
+InstructionSet * IS_MOVEMENT_BWD_R_7 = createIS(false, 1,  (Instruction[1]){ BWD_RIGHT_40});
+
+
+
+
+
+
+
 InstructionSet *IS_ARRAY_PET[IS_ARRAY_PET_LENGTH] = {
     IS_SPIN_LEFT_DELAYED,
     IS_SPIN_RIGHT_DELAYED,
@@ -185,4 +223,54 @@ InstructionSet *IS_ARRAY_FED[IS_ARRAY_FED_LENGTH] = {
 InstructionSet *IS_ARRAY_ORGANIC[IS_ARRAY_ORGANIC_LENGTH] = {
     IS_STOP_60000,
     IS_STOP_60000,
+    
+    IS_STOP_2000,
+    IS_STOP_4000,
+    IS_STOP_2000,
+    IS_STOP_4000,
+    IS_STOP_2000,
+    IS_STOP_4000,
+    IS_STOP_2000,
+    IS_STOP_4000,
+    IS_STOP_2000,
+    IS_STOP_4000,
+
+    IS_FORWARD,
+    IS_FORWARD,
+    IS_FORWARD,
+    IS_FORWARD,
+    IS_FORWARD,
+    IS_FORWARD,
+
+    IS_MOVEMENT_FWD_L_1,
+    IS_MOVEMENT_FWD_L_2,
+    IS_MOVEMENT_FWD_L_3,
+    IS_MOVEMENT_FWD_L_4,
+    IS_MOVEMENT_FWD_L_5,
+    IS_MOVEMENT_FWD_L_6,
+    IS_MOVEMENT_FWD_L_7,
+    
+    IS_MOVEMENT_BWD_L_1,
+    IS_MOVEMENT_BWD_L_2,
+    IS_MOVEMENT_BWD_L_3,
+    IS_MOVEMENT_BWD_L_4,
+    IS_MOVEMENT_BWD_L_5,
+    IS_MOVEMENT_BWD_L_6,
+    IS_MOVEMENT_BWD_L_7,
+
+    IS_MOVEMENT_FWD_R_1,
+    IS_MOVEMENT_FWD_R_2,
+    IS_MOVEMENT_FWD_R_3,
+    IS_MOVEMENT_FWD_R_4,
+    IS_MOVEMENT_FWD_R_5,
+    IS_MOVEMENT_FWD_R_6,
+    IS_MOVEMENT_FWD_R_7,
+    
+    IS_MOVEMENT_BWD_R_1,
+    IS_MOVEMENT_BWD_R_2,
+    IS_MOVEMENT_BWD_R_3,
+    IS_MOVEMENT_BWD_R_4,
+    IS_MOVEMENT_BWD_R_5,
+    IS_MOVEMENT_BWD_R_6,
+    IS_MOVEMENT_BWD_R_7,
 };
