@@ -13,7 +13,8 @@
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
-#include <ArduinoLowPower.h>
+#include <avr/sleep.h>
+#include <avr/wdt.h>
 
 #ifndef SCREEN_ADDRESS
 #define SCREEN_ADDRESS 0x3C
@@ -131,6 +132,7 @@ private:
     void irReceive();
     void irReceiveRoutine();
     void setInstructionSet(InstructionSet *instrSet);
+    void sleep();
 };
 
 extern Tamagotchi myTamagotchi;

@@ -168,7 +168,7 @@ void Tamagotchi::loop()
         Serial.print("sleepyness = ");
         Serial.println(sleepyness);
         if (this->sleepyness = 0){
-            LowPower.sleep();
+            sleep();
         } 
         this->flag_read_battery = 0;
     }
@@ -619,7 +619,12 @@ void Tamagotchi::irReceiveRoutine() {
         case IR_2: 
             this->flag_is_pet = 1;
             break;
-
+         case IR_3: 
+         
+          Serial.println("IR Button 3 preshed");
+          delay(1000);
+            sleep();
+            break;
         #ifdef DEBUG_ADVANCED_IR_CONTROL && DEBUG_ADVANCED_IR_CONTROL > 0
         case IR_7: 
             this->writeDataToEEPROM();
@@ -649,4 +654,30 @@ void Tamagotchi::setInstructionSet(InstructionSet *instrSet) {
     this->move_instructionIndex = -1;
     this->move_instructionSetIndex = 1;
     this->ts_move_instruction = 0;
+}
+
+void Tamagotchi::sleep(){
+    Serial.println("Sleep modus");
+    Serial.print("Hunger: "); Serial.println(this->hunger);
+    delay(5000);
+    Serial.flush();
+     // Choose our preferred sleep mode:
+  set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+  // Set sleep enable (SE) bit:
+  sleep_enable();
+  // Put the device to sleep:
+  wdt_disable();
+  stopOrganicMovement();
+  sleep_mode();
+  // Upon waking up, sketch continues from this point.
+      Serial.print("Hunger: "); Serial.println(this->hunger);
+    delay(5000);
+   Serial.println("Sleep disable");
+    Serial.flush();
+  sleep_disable();
+  wdt_enable(WDTO_2S);
+  
+  //  set_sleep_mode(SLEEP_MODE_PWR_SAVE);
+   // sleep_enable();
+ //   sleep_mode();
 }

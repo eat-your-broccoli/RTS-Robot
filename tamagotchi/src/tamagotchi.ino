@@ -11,10 +11,12 @@
 #include "Tamagotchi.h"
 
 #define PIN_FEEDING_BUTTON 18
-#define PIN_SEEPING_BUTTON 20 // select free interrupt pin
+#define PIN_SLEEPING_BUTTON 19 // select free interrupt pin
 
 #define BAUD_RATE 9600
-
+void interruptSleepButton(){
+  Serial.println("wakup");
+}
 
 void setup()
 {
@@ -28,7 +30,7 @@ void setup()
 
   pinMode(PIN_FEEDING_BUTTON, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(PIN_FEEDING_BUTTON), interruptFeedingButton, RISING);
-  LowPower.attachInterruptWakeup(digitalPinToInterrupt(PIN_SEEPING_BUTTON), , RISING);
+   attachInterrupt(digitalPinToInterrupt(PIN_SLEEPING_BUTTON),interruptSleepButton , RISING);
 }
 
 void interruptFeedingButton(){
