@@ -91,6 +91,9 @@ private:
     volatile byte flag_read_battery;
     volatile byte flag_update_display;
 
+    // touch counter
+    int touchCounter = 0;
+
     // SSD1306 display 
     // reference to the display itself
     Adafruit_SSD1306 display;
@@ -130,6 +133,7 @@ private:
     void irReceive();
     void irReceiveRoutine();
     void setInstructionSet(InstructionSet *instrSet);
+    void readTouchSensor();
 };
 
 extern Tamagotchi myTamagotchi;

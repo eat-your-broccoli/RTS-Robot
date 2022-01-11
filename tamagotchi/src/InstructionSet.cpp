@@ -108,6 +108,16 @@ InstructionSet *IS_STOP_60000 = createIS(true, 12, (Instruction[12]){
                                                        INS_STOP_5000,
                                                    });
 
+InstructionSet *IS_STOP_2000 = createIS(true, 1, (Instruction[1]){
+                                                       INS_STOP_2000,
+                                                   });
+
+InstructionSet *IS_STOP_4000 = createIS(true, 2, (Instruction[2]){
+                                                       INS_STOP_2000,
+                                                       INS_STOP_2000                                                       
+                                                   });
+                                                   
+
 InstructionSet *IS_FORWARD = createIS(false, 2, (Instruction[2]){INS_FORWARD, INS_FORWARD});
 
 InstructionSet *IS_SPIN_RIGHT = createIS(true, 4, (Instruction[4]){INS_TURN_RIGHT_FAST_1000, INS_TURN_RIGHT_FAST_1000, INS_TURN_RIGHT_FAST_1000, INS_TURN_RIGHT_FAST_1000});
