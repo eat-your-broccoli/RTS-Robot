@@ -31,7 +31,10 @@ enum class enum_face {
     sad,
     awake,
     sleepy,
-    hungry
+    hungry,
+    eating,
+    petted,
+    pleading
 };
 
 class Tamagotchi
@@ -47,6 +50,8 @@ private:
     boolean VoltageDetectionStatus = false;
     
     unsigned long previousMillisFeeding;
+    unsigned long previousMillisPetting;
+    
 
     // if movement is blocked, e.g. obstacle detected by Ultrasonic sensor
     bool isMovementBlocked = false;
@@ -62,6 +67,9 @@ private:
     int isOrganicMovement = 0;
     // when started last movement instruction?
     unsigned long ts_move_instruction = 0;
+    // how long to wait until instruction is done
+    unsigned long move_time_instruction = 0;
+    
     // which instruction set currently is used
     int move_instructionSetIndex = 0;
     // the instruction as a pointer
@@ -70,6 +78,12 @@ private:
     int move_instructionIndex = 0;
     
     unsigned long ts_face_update;
+
+    //findUnblockedDirection -> directions that are searched
+    uint8_t fUD_Directions[3];
+    uint8_t fUD_Index = 0;
+    uint8_t fUD_maxDistIndex =0;
+    uint16_t fUD_randomTurnTime =0;
 
     // volatile because compiler should not optimize them
     volatile byte flag_save;
@@ -87,6 +101,9 @@ private:
     enum_face display_index = enum_face::init;
     enum_face display_index_current = enum_face::init;
     volatile byte flag_button;
+
+    // ir remote data
+    uint8_t irRecData;
 
 public:
     Tamagotchi();
@@ -111,6 +128,9 @@ private:
     void displayFace(enum_face index);
     void setDisplayFace(enum_face index, uint8_t priority);
     void chooseFace();
+    void irReceive();
+    void irReceiveRoutine();
+    void setInstructionSet(InstructionSet *instrSet);
 };
 
 extern Tamagotchi myTamagotchi;

@@ -22,7 +22,6 @@ void EngineControl::init() {
 }
 
 void EngineControl::stop() {
-    Serial.println("stop");
     move(3, 0, 3, 0);
 }
 

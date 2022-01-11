@@ -1,6 +1,7 @@
 #include "Tamagotchi.h"
 #include <EEPROM.h>
 #include "Face_Bitmaps.h"
+#include "IR_Buttons.h"
 
 #include "DeviceDriverSet_xxx0.h"
 
@@ -32,18 +33,31 @@
 #define VOLT_BATTERY_UPPER_LIMIT 7.0
 #define VOLT_BATTERY_LOWER_LIMIT 4.0
 
-#define FACE_UPDATE_COOLDOWN 10000
+// how long one face stays on
+#define FACE_UPDATE_COOLDOWN 4000
 
-DeviceDriverSet_Voltage AppVoltage2;
 // feeding cooldown
 #define FEEDING_COOLDOWN 10000 // 10 seconds
+#define PETTING_COOLDOWN 10000 // 10 seconds
+
+
+#define PETTING_AFFECTION_INC 15
 
 
 #define MIN_DISTANCE 20
 
-
-
 #define PIN_RANDOM_INIT A10
+
+// set to 1 to debug
+#define DEBUG_IR_RECEIVE 0
+#define DEBUG_NO_ORGANIC_MOVEMENT 0
+#define DEBUG_ADVANCED_IR_CONTROL 1 // allows control of hunger, affection via remote
+
+// IR Remote
+DeviceDriverSet_IRrecv irRemote;
+
+Tamagotchi myTamagotchi;
+
 /**
  * @brief Tamagotchi class
  * 
@@ -51,9 +65,6 @@ DeviceDriverSet_Voltage AppVoltage2;
  * includes sentiment like hunger, sleepyness and affection
  * 
  */
-
-Tamagotchi myTamagotchi;
-
 Tamagotchi::Tamagotchi()
 {
     this->sleepyness = 50;
@@ -64,7 +75,7 @@ Tamagotchi::Tamagotchi()
 
 void Tamagotchi::init(TwoWire *twi) {
     Serial.println("reading data from EEPROM...");
-    // readDataFromEEPROM();
+    readDataFromEEPROM();
     Serial.println("done reading data from EEPROM");
 
     pinMode(PIN_RANDOM_INIT, INPUT);
@@ -92,6 +103,9 @@ void Tamagotchi::init(TwoWire *twi) {
         Serial.println(F("SSD1306 allocation failed.\nProgram execution will halt (Is the display connected correctly? Are large vars stored in Flash memory (full RAM causes I²C to 'time out')?)"));
         for(;;); // Don't proceed, loop forever
     }
+
+    irRemote.DeviceDriverSet_IRrecv_Init();
+
     displayFace(enum_face::awake);
 }
 
@@ -139,6 +153,10 @@ void Tamagotchi::loop()
     int hasAnythingChanged = 0;
     unsigned long currentMillis = millis();
 
+    // read data from remote
+    irReceive();
+    irReceiveRoutine();
+
     if (this->flag_read_battery)
     {
         hasAnythingChanged++;
@@ -175,7 +193,8 @@ void Tamagotchi::loop()
                 this->hunger = this->hunger - 20;
                 Serial.print("Feeding... Hunger at: "); Serial.println(this->hunger);
             }
-            // TODO display feeding symbol
+            this->setDisplayFace(enum_face::eating, 30);
+            this->setInstructionSet(IS_ARRAY_FED[random(0, IS_ARRAY_FED_LENGTH)]);
         }
         // reset flags
         this->flag_is_fed = 0;
@@ -183,10 +202,17 @@ void Tamagotchi::loop()
 
     if (this->flag_is_pet)
     {
-        hasAnythingChanged++;
-        // TODO increase affection
-        // TODO display happy symbol
-        // reset flags
+        if(this->affection < 100 && (currentMillis < previousMillisPetting 
+        ||  currentMillis - previousMillisPetting >= PETTING_COOLDOWN)) {
+            hasAnythingChanged++;
+            previousMillisPetting = currentMillis;
+            this->affection += 20;
+            if(this->affection > 100) this->affection = 100;
+
+            this->setDisplayFace(enum_face::petted, 30);
+            this->setInstructionSet(IS_ARRAY_PET[random(0, IS_ARRAY_PET_LENGTH)]);
+        }
+        
         this->flag_is_pet = 0;
     }
 
@@ -198,28 +224,14 @@ void Tamagotchi::loop()
 
     organicMovement();
     
-    
-    // reset flags
-    this->flag_is_pet = 0;
-    this->flag_is_fed = 0;
-    this->flag_read_battery = 0;
-    if (hasAnythingChanged > 0)
-    {
-        Serial.print("Hunger: ");
-        Serial.println(this->hunger);
-        Serial.print("Affection: ");
-        Serial.println(this->affection);
-        Serial.print("Sleepyness: ");
-        Serial.println(this->sleepyness);
-    }
-
-    if(this->flag_update_display == 0 && ((currentMillis - this->ts_face_update) > FACE_UPDATE_COOLDOWN || currentMillis < this->ts_face_update)) {
+    if(this->flag_update_display == 0 && 
+    ((currentMillis - this->ts_face_update) > FACE_UPDATE_COOLDOWN || currentMillis < this->ts_face_update)) {
         chooseFace();
     }
-    
     if(this->flag_update_display != 0) {
         displayFace(this->display_index);
     }
+
     // reset flags
     this->flag_is_pet = 0;
     this->flag_is_fed = 0;
@@ -240,12 +252,9 @@ void Tamagotchi::readDataFromEEPROM()
     this->hunger = EEPROM.read(ADDR_TAMAGOTCHI_HUNGER);
 
     Serial.println("read values: ");
-    Serial.print("Hunger: ");
-    Serial.println(this->hunger);
-    Serial.print("Affection: ");
-    Serial.println(this->affection);
-    Serial.print("Sleepyness: ");
-    Serial.println(this->sleepyness);
+    Serial.print("Hunger: "); Serial.println(this->hunger);
+    Serial.print("Affection: "); Serial.println(this->affection);
+    Serial.print("Sleepyness: "); Serial.println(this->sleepyness);
 
     if (this->sleepyness == 0xFF)
         this->sleepyness = DEFAULT_SLEEPYNESS;
@@ -255,12 +264,9 @@ void Tamagotchi::readDataFromEEPROM()
         this->hunger = DEFAULT_HUNGER;
 
     Serial.println("corrected values: ");
-    Serial.print("Hunger: ");
-    Serial.println(this->hunger);
-    Serial.print("Affection: ");
-    Serial.println(this->affection);
-    Serial.print("Sleepyness: ");
-    Serial.println(this->sleepyness);
+    Serial.print("Hunger: "); Serial.println(this->hunger);
+    Serial.print("Affection: "); Serial.println(this->affection);
+    Serial.print("Sleepyness: "); Serial.println(this->sleepyness);
 }
 
 void Tamagotchi::writeDataToEEPROM()
@@ -308,6 +314,10 @@ uint8_t Tamagotchi::convertVoltToSleepyness(float voltage) {
  * like moving, turning, ... and a timespan during which the instruction has to be done
  */
 void Tamagotchi::organicMovement() {
+    #if defined DEBUG_NO_ORGANIC_MOVEMENT && DEBUG_NO_ORGANIC_MOVEMENT > 0
+        return;
+    #endif
+
     unsigned long time = millis();
     // check if last other action was at least n seconds in the past
     if(this->isOrganicMovement == false &&
@@ -315,40 +325,42 @@ void Tamagotchi::organicMovement() {
         // wait until enough time has passed
         return;
     }
-    // check if obstacle is present
-    // if yes, stop. Turn a bit
-    uint16_t dist = myUltrasonicSensor.read();
-    // if ultrasonic sensor detects obstacle within 20cm of range
-    // Serial.println((String) "my distance is "+dist);
-    if(isDistInRange(dist, 0, MIN_DISTANCE)) {
-        // Serial.println("movement is blocked");
-        findUnblockedDirection();
-        myServo.reset();
-        return;
-    }
 
+    // instruction set can disable distance measure
+    if(this->isOrganicMovement == false || this->move_instructionSet->blockDistMeasure != true) {
+        // check if obstacle is present
+        // if yes, stop. Turn a bit
+        uint16_t dist = myUltrasonicSensor.read();
+        // if ultrasonic sensor detects obstacle within 20cm of range
+        // Serial.println((String) "my distance is "+dist);
+        if(this->isMovementBlocked || isDistInRange(dist, 0, MIN_DISTANCE)) {
+            // Serial.println("movement is blocked");
+            findUnblockedDirection();
+            myServo.reset();
+            return;
+        }
+    }
+    
     // check if not already moving organically
     if(this->isOrganicMovement == 0) {
         // reset instruction set if it was not properly resetted
         this->move_instructionSetIndex = -1;
         this->ts_move_instruction = 0;
+        this->move_time_instruction = 0;
         this->isOrganicMovement = 1;
     }
 
     // load instruction set
     if(this->move_instructionSetIndex == -1) {
         Serial.println("loading instruction set");
-        this->move_instructionSetIndex = 1;
-        this->move_instructionSet = this->randomInstructionSet();
-        this->move_instructionIndex = -1;
-        this->ts_move_instruction = 0; // reset timestamp
+        this->setInstructionSet(this->randomInstructionSet());
     }
 
-    Instruction *instr = (this->move_instructionSet->instr[this->move_instructionIndex]);
+    // Instruction *instr = (this->move_instructionSet->instr[this->move_instructionIndex]);
 
     // TODO timer overflows
     // check if current instruction's time has passed
-    if(this->ts_move_instruction != 0 && time - this->ts_move_instruction <= (instr->time)) {
+    if(this->ts_move_instruction != 0 && time - this->ts_move_instruction <= (move_time_instruction)) {
         // do nothing
         return;
     }
@@ -361,7 +373,8 @@ void Tamagotchi::organicMovement() {
     }
 
     Serial.println("loading next instruction");
-    instr = (this->move_instructionSet->instr[this->move_instructionIndex]);
+    Instruction *instr = (this->move_instructionSet->instr[this->move_instructionIndex]);
+    this->move_time_instruction = instr->time + random(0, instr->randomTime);
 
     // decode direction instruction
     uint8_t dirR = (instr->dir & 0b01); // 11 AND 01 = 01 (forward right); 10 AND 01 = 00 (backward right)
@@ -370,7 +383,10 @@ void Tamagotchi::organicMovement() {
     // execute instruction
     this->ts_move_instruction = time;
     myEngine.move(dirR, instr->R, dirL, instr->L);
-    myServo.turn(instr->servo);
+
+    // if instr is 255, it will turn randomly
+    if(instr->servo == 255) myServo.turn(random(15, 165));
+    else myServo.turn(instr->servo);
 }
 
 void Tamagotchi::stopOrganicMovement() {
@@ -379,6 +395,7 @@ void Tamagotchi::stopOrganicMovement() {
     this->isOrganicMovement = 0;
     this->move_instructionIndex = 0;
     this->move_instructionSetIndex = -1;
+    this->move_time_instruction = 0;
     myServo.reset();
 }
 
@@ -389,43 +406,73 @@ void Tamagotchi::stopOrganicMovement() {
  * if no direction is free, move backward and turn randomly
  */
 void Tamagotchi::findUnblockedDirection() {
-    myEngine.stop();
-    uint16_t dist[3];
-    unsigned int maxDistIndex;
-
+  
     // if previously the movement wasn't blocked, stop the engine to avoid hitting obstacle
     if(this->isMovementBlocked == false) {
+        myEngine.stop();
         this->ts_move_instruction = 0;
         this->isMovementBlocked = true;
-        // this->ts_blocked = 0; 
+        this->ts_blocked = millis(); 
         // this->blocked_instructionIndex = 0;
-    }
-    // TODO delay used here. change that
-    // make measuremens
-    delay(200);
-    dist[0] = myUltrasonicSensor.read();
-    myServo.turn(SERVO_CENTER_RIGHT);
-    delay(200);
-    dist[1] = myUltrasonicSensor.read();
-    if(dist[1] >= dist[0]) maxDistIndex = 1;
-    myServo.turn(SERVO_CENTER_LEFT);
-    delay(200);
-    dist[2] = myUltrasonicSensor.read();
-    if(dist[2] >= dist[maxDistIndex]) maxDistIndex = 2;
-    myServo.reset();
-    if(!isDistInRange(dist[maxDistIndex], 0, MIN_DISTANCE)) {
-        if(maxDistIndex != 0) { // road ahead isn't clear
-            myEngine.turn90deg(maxDistIndex == 1);  
-        }
-        this->isMovementBlocked = false;
+        this->fUD_Index =0;
+    } 
+    else if (millis()- this->ts_blocked  < 200) {
         return;
+    } 
+    else if (this->fUD_Index== 3) {
+        if (millis()>=this->ts_blocked+this->fUD_randomTurnTime){
+            this->fUD_Index++;
+        } else {
+            return;
+        }
+    } 
+    else {
+        this->fUD_Index++;
     }
-    delay(200);
-    // if no way is free turn to the right or left at random
-    uint8_t rand = random(0,2); // 0 do nothing, 1 turn right, 2 turn left
-    myEngine.turn(rand == 1, SPEED_NORMAL);
-    delay(random(200, 800));
-    myEngine.stop();
+
+    switch(this->fUD_Index) {
+        case 0:
+            fUD_Directions[0] = myUltrasonicSensor.read();
+            myServo.turn(SERVO_CENTER_RIGHT);
+            this->fUD_maxDistIndex = 0;
+            this->ts_blocked  = millis();
+            return;
+        case 1: {
+            this->fUD_Directions[1] = myUltrasonicSensor.read();
+            if(this->fUD_Directions[1] >= this->fUD_Directions[0]) this->fUD_maxDistIndex = 1;
+            myServo.turn(SERVO_CENTER_LEFT);
+            this->ts_blocked  = millis();
+            return;
+        } 
+        case 2: {
+            this->fUD_Directions[2] = myUltrasonicSensor.read();
+            if(this->fUD_Directions[2] >= this->fUD_Directions[this->fUD_maxDistIndex]) this->fUD_maxDistIndex = 2;
+            myServo.reset();
+            if(!isDistInRange(this->fUD_Directions[this->fUD_maxDistIndex], 0, MIN_DISTANCE)) {
+                if(this->fUD_maxDistIndex != 0) { // road ahead isn't clear
+                    myEngine.turn90deg(this->fUD_maxDistIndex == 1);   //delay in turn90deg
+                }
+                this->isMovementBlocked = false;
+                return;
+            }
+                    // if no way is free turn to the right or left at random
+            uint8_t rand = random(0,2); // 0 do nothing, 1 turn right, 2 turn left
+            myEngine.turn(rand == 1, SPEED_NORMAL);
+            this->ts_blocked =millis();
+            this->fUD_randomTurnTime=(random(200, 800));
+            this->fUD_Index++;//case 3 -> waiting time
+            return;
+        }
+        case 3:
+            return;
+        case 4:
+            myEngine.stop();
+            this->isMovementBlocked = false;
+            return;
+        default: { // default case should not happen
+            this->isMovementBlocked = false; // would make another dist measure before starting again
+        }
+    }
 }
 
 /**
@@ -495,6 +542,18 @@ void Tamagotchi::displayFace(enum_face index) {
             display.drawBitmap(0,0, FACE_HUNGRY, SCREEN_WIDTH, SCREEN_HEIGHT, 1);
             break;
         }
+        case enum_face::petted: {
+            display.drawBitmap(0,0, FACE_PETTED, SCREEN_WIDTH, SCREEN_HEIGHT, 1);
+            break;
+        }
+        case enum_face::pleading: {
+            display.drawBitmap(0,0, FACE_PLEADING, SCREEN_WIDTH, SCREEN_HEIGHT, 1);
+            break;
+        }
+        case enum_face::eating: {
+            display.drawBitmap(0,0, FACE_EATING, SCREEN_WIDTH, SCREEN_HEIGHT, 1);
+            break;
+        }
         default: 
             Serial.println("UNKNOWN FACE !!!");
     }
@@ -533,11 +592,61 @@ void Tamagotchi::chooseFace() {
         setDisplayFace(enum_face::neutral, 17);
         return;
     }
-    setDisplayFace(enum_face::happy, 0);
+    setDisplayFace(enum_face::happy, 5);
 }
 
 void Tamagotchi::setIsFedFlag()
 {
     Serial.println("Button Click detected");
     this->flag_is_fed = 1;
+}
+
+void Tamagotchi::irReceive() {
+    if(irRemote.DeviceDriverSet_IRrecv_Get(&irRecData) == false) {
+        irRecData = 0;
+    }
+    #if DEBUG_IR_RECEIVE > 0 
+        if(this->irRecData > 0) Serial.println((String) "IR: "+(this->irRecData));
+    #endif
+}
+
+void Tamagotchi::irReceiveRoutine() {
+    if(irRecData == 0) return;
+    switch(irRecData) {
+        case IR_1: // petting
+            this->setIsFedFlag();
+            break;
+        case IR_2: 
+            this->flag_is_pet = 1;
+            break;
+
+        #ifdef DEBUG_ADVANCED_IR_CONTROL && DEBUG_ADVANCED_IR_CONTROL > 0
+        case IR_7: 
+            this->writeDataToEEPROM();
+            break;
+        case IR_8: 
+            Serial.println("lowering affection");
+            this->affection -= 20;
+            if(this->affection < 0) this->affection = 20;
+            break;
+        case IR_9: 
+            Serial.println("increasing hunger");
+            this->hunger += 20;
+            if(this->hunger >100) this->hunger = 100;
+            break;
+        #endif
+
+        case IR_OK: 
+            setInstructionSet(IS_STOP_60000);
+            break;
+        default: break;
+    }
+}
+
+void Tamagotchi::setInstructionSet(InstructionSet *instrSet) {
+    this->move_instructionSet = instrSet;
+    this->isOrganicMovement = 1;
+    this->move_instructionIndex = -1;
+    this->move_instructionSetIndex = 1;
+    this->ts_move_instruction = 0;
 }

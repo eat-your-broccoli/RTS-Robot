@@ -12,7 +12,7 @@
  * @param dir the direction of each engine group moves
  * @param L speed of left engine group
  * @param R speed of right engine group
- * @param servo servo angle
+ * @param servo servo angle, set to 255 for random angle
  * @param time how long this instruction should be executed
  */
 struct Instruction {
@@ -21,6 +21,7 @@ struct Instruction {
     uint8_t R;
     uint8_t servo;
     uint16_t time;
+    uint16_t randomTime;
 };
 
 /**
@@ -38,9 +39,25 @@ struct InstructionSet {
 };
 
 InstructionSet* createIS(bool blockDistMeasure, uint8_t length, Instruction (instr) []);
+InstructionSet** createIS_array(uint8_t length, InstructionSet (instr) []);
 
 extern InstructionSet *IS_FORWARD;
+extern InstructionSet *IS_STOP_60000;
+
 extern InstructionSet *IS_WIGGLE;
 extern InstructionSet *IS_SPIN_RIGHT;
 extern InstructionSet *IS_SPIN_LEFT;
+
+#define IS_ARRAY_PET_LENGTH 2
+extern InstructionSet *IS_ARRAY_PET[IS_ARRAY_PET_LENGTH];
+
+#define IS_ARRAY_FED_LENGTH 3
+extern InstructionSet *IS_ARRAY_FED[IS_ARRAY_FED_LENGTH];
+
+#define IS_ARRAY_ORGANIC_LENGTH 10
+extern InstructionSet *IS_ARRAY_ORGANIC[IS_ARRAY_ORGANIC_LENGTH];
+
+
+
+
 
