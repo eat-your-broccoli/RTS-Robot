@@ -4,6 +4,7 @@
 #include "IR_Buttons.h"
 
 #include "DeviceDriverSet_xxx0.h"
+#include "FSLP.h"
 
 #ifndef DEBUG
 // comment next line out if you don't want debug messages
@@ -95,6 +96,8 @@ void Tamagotchi::init(TwoWire *twi) {
     pinMode(PIN_Voltage, INPUT);
     this->smoothedVolt = readBatteryLevel();
     Serial.println("done init AppVoltage");
+    // init FSLP (touch sensor)
+    myFSLP.init();
 
     Serial.println("Init display");
         // init display with passed I²C connection
@@ -157,6 +160,9 @@ void Tamagotchi::loop()
     irReceive();
     irReceiveRoutine();
 
+    // read touch sensor
+    readTouchSensor();
+
     if (this->flag_read_battery)
     {
         hasAnythingChanged++;
@@ -175,7 +181,6 @@ void Tamagotchi::loop()
 
     if (this->flag_is_fed)
     {
-        
         if ((currentMillis - previousMillisFeeding >= FEEDING_COOLDOWN) || previousMillisFeeding == 0 || currentMillis < previousMillisFeeding)
         {
             // save the last time you fed
@@ -656,6 +661,7 @@ void Tamagotchi::setInstructionSet(InstructionSet *instrSet) {
     this->ts_move_instruction = 0;
 }
 
+<<<<<<< HEAD
 void Tamagotchi::sleep(){
     Serial.println("Sleep modus");
     Serial.print("Hunger: "); Serial.println(this->hunger);
@@ -680,4 +686,20 @@ void Tamagotchi::sleep(){
   //  set_sleep_mode(SLEEP_MODE_PWR_SAVE);
    // sleep_enable();
  //   sleep_mode();
+=======
+
+void Tamagotchi::readTouchSensor() {
+    if(!myFSLP.isTouch()) {
+        if(this->touchCounter > 0) this->touchCounter--;
+        return;
+    }
+    this->touchCounter++;
+    if(this->touchCounter == 5) {
+        setInstructionSet(IS_STOP_4000);
+    }
+    if(this->touchCounter > 60) {
+        this->flag_is_pet = 1;
+        this->touchCounter = 0;
+    }
+>>>>>>> master
 }
