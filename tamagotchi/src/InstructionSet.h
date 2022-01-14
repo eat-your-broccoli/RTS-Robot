@@ -50,6 +50,8 @@ extern InstructionSet *IS_STOP_4000;
 extern InstructionSet *IS_WIGGLE;
 extern InstructionSet *IS_SPIN_RIGHT;
 extern InstructionSet *IS_SPIN_LEFT;
+extern InstructionSet *IS_MOVEMENT_FWD_R_5;
+
 
 #define IS_ARRAY_PET_LENGTH 2
 extern InstructionSet *IS_ARRAY_PET[IS_ARRAY_PET_LENGTH];
@@ -57,7 +59,7 @@ extern InstructionSet *IS_ARRAY_PET[IS_ARRAY_PET_LENGTH];
 #define IS_ARRAY_FED_LENGTH 3
 extern InstructionSet *IS_ARRAY_FED[IS_ARRAY_FED_LENGTH];
 
-#define IS_ARRAY_ORGANIC_LENGTH 10
+#define IS_ARRAY_ORGANIC_LENGTH 23
 extern InstructionSet *IS_ARRAY_ORGANIC[IS_ARRAY_ORGANIC_LENGTH];
 
 
