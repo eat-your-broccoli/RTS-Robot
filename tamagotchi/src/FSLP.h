@@ -13,11 +13,7 @@ class FSLP {
         boolean isTouch();
     private:
         void analogReset();
-<<<<<<< HEAD
         #define PRESSURE_THRESHOLD 200
-=======
-        #define PRESSURE_THRESHOLD 100
->>>>>>> master
         #define SL A8
         #define DL1 51
         #define DL2 A9
