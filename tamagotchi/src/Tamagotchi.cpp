@@ -403,7 +403,7 @@ void Tamagotchi::organicMovement() {
     myEngine.move(dirR, instr->R, dirL, instr->L);
 
     // if instr is 255, it will turn randomly
-    if(instr->servo == 255) myServo.turn(random(15, 165));
+    if(instr->servo == 255) myServo.turn(random(55, 125));
     else myServo.turn(instr->servo);
 }
 
