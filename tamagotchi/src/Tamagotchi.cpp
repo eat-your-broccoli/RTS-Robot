@@ -408,6 +408,7 @@ void Tamagotchi::organicMovement() {
     uint8_t dirL = (instr->dir >> 1);  // 11 >> 1 = 01   
     
     // execute instruction
+    this->ts_move_instruction = time;
     myEngine.move(dirR, instr->R, dirL, instr->L);
 
     // if instr is 255, it will turn randomly
