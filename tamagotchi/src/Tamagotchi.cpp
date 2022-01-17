@@ -5,6 +5,7 @@
 
 #include "DeviceDriverSet_xxx0.h"
 #include "FSLP.h"
+#include "ITR20001.h"
 
 #ifndef DEBUG
 // comment next line out if you don't want debug messages
@@ -85,11 +86,12 @@ void Tamagotchi::init(TwoWire *twi) {
     myUltrasonicSensor.init();
     myEngine.init();
     myServo.init();
+    myITR.init();
 
     myServo.turn(SERVO_CENTER_RIGHT);
-    delay(500);
+    delay(200);
     myServo.turn(SERVO_CENTER_LEFT);
-    delay(500);
+    delay(200);
     myServo.reset();
        
     Serial.println("init AppVoltage ...");
@@ -329,6 +331,20 @@ void Tamagotchi::organicMovement() {
         return;
     }
 
+    if(myITR.isTakenOffGround()) {
+        boolean isOffGrund = true;
+        // sample over 10 rounds to filter bead readings
+        for (int i = 0; i< 10; i++) {
+            isOffGrund = isOffGrund && myITR.isTakenOffGround();
+        }
+        if(isOffGrund) {
+            stopOrganicMovement();
+            setDisplayFace(enum_face::pleading, 10);
+            return;
+        }
+    }
+
+
     // instruction set can disable distance measure
     if(this->isOrganicMovement == false || this->move_instructionSet->blockDistMeasure != true) {
         // check if obstacle is present
@@ -384,11 +400,10 @@ void Tamagotchi::organicMovement() {
     uint8_t dirL = (instr->dir >> 1);  // 11 >> 1 = 01   
     
     // execute instruction
-    this->ts_move_instruction = time;
     myEngine.move(dirR, instr->R, dirL, instr->L);
 
     // if instr is 255, it will turn randomly
-    if(instr->servo == 255) myServo.turn(random(15, 165));
+    if(instr->servo == 255) myServo.turn(random(55, 125));
     else myServo.turn(instr->servo);
 }
 
@@ -593,7 +608,6 @@ void Tamagotchi::chooseFace() {
 
 void Tamagotchi::setIsFedFlag()
 {
-    Serial.println("Button Click detected");
     this->flag_is_fed = 1;
 }
 
