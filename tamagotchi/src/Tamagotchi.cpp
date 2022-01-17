@@ -7,7 +7,7 @@
 #include "FSLP.h"
 #include "ITR20001.h"
 
-#ifndef DEBUG
+#ifndef DEBUG 1
 // comment next line out if you don't want debug messages
 // #define DEBUG
 #endif
@@ -45,8 +45,8 @@
 #define FACE_UPDATE_COOLDOWN 4000
 
 // feeding cooldown
-#define FEEDING_COOLDOWN 10000 // 10 seconds
-#define PETTING_COOLDOWN 10000 // 10 seconds
+#define FEEDING_COOLDOWN 4000 // 4 seconds
+#define PETTING_COOLDOWN 4000 // 4 seconds
 
 
 #define PETTING_AFFECTION_INC 15
@@ -146,17 +146,6 @@ void Tamagotchi::onTick()
         this->affection = 0;
 
     this->flag_read_battery = 1;
-
-    if (tickCounter % 60 == 0)
-    {
-        Serial.println("Hello every 60 seconds");
-
-        // because it's a multiple of 60 seconds, we place it here so cpu only has to evaluate it every 60 seconds (instead of every 10)
-        if (tickCounter % 600 == 0)
-        {
-            Serial.println("Hello every 600 seconds");
-        }
-    }
 }
 
 void Tamagotchi::loop()
@@ -208,6 +197,8 @@ void Tamagotchi::loop()
             }
             this->setDisplayFace(enum_face::eating, 30);
             this->setInstructionSet(IS_ARRAY_FED[random(0, IS_ARRAY_FED_LENGTH)]);
+        } else {
+            Serial.println("just recently fed");
         }
         // reset flags
         this->flag_is_fed = 0;
@@ -243,13 +234,8 @@ void Tamagotchi::loop()
     }
     if(this->flag_update_display != 0) {
         displayFace(this->display_index);
+        this->flag_update_display = 0;
     }
-
-    // reset flags
-    this->flag_is_pet = 0;
-    this->flag_is_fed = 0;
-    this->flag_read_battery = 0;
-    this->flag_update_display = 0;
 }
 
 /**
@@ -314,9 +300,12 @@ float Tamagotchi::readBatteryLevel() {
 }
 
 uint8_t Tamagotchi::convertVoltToSleepyness(float voltage) {
-    if(voltage > VOLT_BATTERY_UPPER_LIMIT) return 100;
-    if(voltage < VOLT_BATTERY_LOWER_LIMIT) return 0;
-    return (uint8_t) (((voltage - VOLT_BATTERY_LOWER_LIMIT) / (VOLT_BATTERY_UPPER_LIMIT - VOLT_BATTERY_LOWER_LIMIT)) * 100);
+    if(voltage > VOLT_BATTERY_UPPER_LIMIT) return 0;
+    if(voltage < VOLT_BATTERY_LOWER_LIMIT) return 100;
+    // voltage = 4.3
+    // lower = 4.0
+    // 0.3 / 3.0 = 0,1 * 100 = 10
+    return (uint8_t) (100 - ((voltage - VOLT_BATTERY_LOWER_LIMIT) / (VOLT_BATTERY_UPPER_LIMIT - VOLT_BATTERY_LOWER_LIMIT)) * 100);
 }
 
 /**
@@ -347,7 +336,7 @@ void Tamagotchi::organicMovement() {
         }
         if(isOffGrund) {
             stopOrganicMovement();
-            setDisplayFace(enum_face::pleading, 10);
+            setDisplayFace(enum_face::startled, 10);
             return;
         }
     }
@@ -574,6 +563,15 @@ void Tamagotchi::displayFace(enum_face index) {
             display.drawBitmap(0,0, FACE_EATING, SCREEN_WIDTH, SCREEN_HEIGHT, 1);
             break;
         }
+        case enum_face::sleeping: {
+            display.drawBitmap(0,0, FACE_SLEEPING, SCREEN_WIDTH, SCREEN_HEIGHT, 1);
+            break;
+        }
+        case enum_face::startled: {
+            display.drawBitmap(0,0, FACE_STARTLED, SCREEN_WIDTH, SCREEN_HEIGHT, 1);
+            break;
+        }
+        
         default: 
             Serial.println("UNKNOWN FACE !!!");
     }
@@ -596,7 +594,7 @@ void Tamagotchi::setDisplayFace(enum_face index, uint8_t priority) {
 }
 
 void Tamagotchi::chooseFace() {
-    if(this->sleepyness < 5) {
+    if(this->sleepyness > 90) {
         setDisplayFace(enum_face::sleepy, 20);
         return;
     }
@@ -677,7 +675,7 @@ void Tamagotchi::setInstructionSet(InstructionSet *instrSet) {
 
 void Tamagotchi::sleep(){
     Serial.println("Sleep modus");
-    displayFace(enum_face::pleading);
+    displayFace(enum_face::sleeping);
  //   Serial.print("Hunger: "); Serial.println(this->hunger);
   //  delay(5000);
     writeDataToEEPROM();
@@ -685,25 +683,21 @@ void Tamagotchi::sleep(){
     Serial.flush();
 
      // Choose our preferred sleep mode:
-  set_sleep_mode(SLEEP_MODE_PWR_DOWN);
-  // Set sleep enable (SE) bit:
-  sleep_enable();
-  // Put the device to sleep:
-  wdt_disable();
-  stopOrganicMovement();
-  sleep_mode();
-  // Upon waking up, sketch continues from this point.
-   //   Serial.print("Hunger: "); Serial.println(this->hunger);
-  //  delay(5000);
-   Serial.println("Sleep disable");
+    set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+    // Set sleep enable (SE) bit:
+    sleep_enable();
+    // Put the device to sleep:
+    wdt_disable();
+    stopOrganicMovement();
+    sleep_mode();
+    // Upon waking up, sketch continues from this point.
+    Serial.println("Sleep disable");
     Serial.flush();
-  sleep_disable();
-  readDataFromEEPROM();
-  wdt_enable(WDTO_2S);
-  
-  //  set_sleep_mode(SLEEP_MODE_PWR_SAVE);
-   // sleep_enable();
- //   sleep_mode();
+    sleep_disable();
+    readDataFromEEPROM();
+    wdt_enable(WDTO_2S);
+    wdt_reset();
+    chooseFace(); // update face
 }
 void Tamagotchi::readTouchSensor() {
     if(!myFSLP.isTouch()) {

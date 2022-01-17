@@ -31,13 +31,14 @@ void setup()
 
   pinMode(PIN_FEEDING_BUTTON, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(PIN_FEEDING_BUTTON), interruptFeedingButton, RISING);
-   attachInterrupt(digitalPinToInterrupt(PIN_SLEEPING_BUTTON), interruptSleepButton, RISING);
+  attachInterrupt(digitalPinToInterrupt(PIN_SLEEPING_BUTTON), interruptSleepButton, RISING);
 }
 
 void sleepingAttachInterrupt(){
    attachInterrupt(digitalPinToInterrupt(PIN_FEEDING_BUTTON), interruptFeedingButton, RISING);
 }
 void interruptFeedingButton(){
+  Serial.println("button press for feeding");
   myTamagotchi.setIsFedFlag();
 }
 

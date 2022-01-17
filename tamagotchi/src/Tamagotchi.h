@@ -36,7 +36,9 @@ enum class enum_face {
     hungry,
     eating,
     petted,
-    pleading
+    pleading,
+    startled,
+    sleeping,
 };
 
 class Tamagotchi
