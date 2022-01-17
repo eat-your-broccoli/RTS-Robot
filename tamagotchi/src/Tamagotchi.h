@@ -15,6 +15,8 @@
 #include <Adafruit_SSD1306.h>
 #include <avr/sleep.h>
 #include <avr/wdt.h>
+#include <avr/interrupt.h>
+#include <pins_arduino.h>
 
 #ifndef SCREEN_ADDRESS
 #define SCREEN_ADDRESS 0x3C
@@ -135,11 +137,8 @@ private:
     void irReceive();
     void irReceiveRoutine();
     void setInstructionSet(InstructionSet *instrSet);
-<<<<<<< HEAD
     void sleep();
-=======
     void readTouchSensor();
->>>>>>> master
 };
 
 extern Tamagotchi myTamagotchi;

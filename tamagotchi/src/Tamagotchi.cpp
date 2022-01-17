@@ -32,7 +32,13 @@
 // voltage reading
 #define VOLT_SMOOTHING 0.2
 #define VOLT_BATTERY_UPPER_LIMIT 7.0
+#if !defined DEBUG || DEBUG == 0
 #define VOLT_BATTERY_LOWER_LIMIT 4.0
+#endif
+#if !defined VOLT_BATTERY_LOWER_LIMIT
+    float VOLT_BATTERY_LOWER_LIMIT = 4.0;
+#endif
+//#define VOLT_BATTERY_LOWER_LIMIT 6.9//4.0
 
 // how long one face stays on
 #define FACE_UPDATE_COOLDOWN 4000
@@ -173,7 +179,7 @@ void Tamagotchi::loop()
         Serial.println(batteryLevel);
         Serial.print("sleepyness = ");
         Serial.println(sleepyness);
-        if (this->sleepyness = 0){
+        if (this->sleepyness == 100){
             sleep();
         } 
         this->flag_read_battery = 0;
@@ -661,12 +667,16 @@ void Tamagotchi::setInstructionSet(InstructionSet *instrSet) {
     this->ts_move_instruction = 0;
 }
 
-<<<<<<< HEAD
 void Tamagotchi::sleep(){
     Serial.println("Sleep modus");
-    Serial.print("Hunger: "); Serial.println(this->hunger);
-    delay(5000);
+    displayFace(enum_face::pleading);
+ //   Serial.print("Hunger: "); Serial.println(this->hunger);
+  //  delay(5000);
+    writeDataToEEPROM();
+    detachInterrupt(digitalPinToInterrupt(PIN_FEEDING_BUTTON));
+    .sleepingDetachInterrupt();
     Serial.flush();
+
      // Choose our preferred sleep mode:
   set_sleep_mode(SLEEP_MODE_PWR_DOWN);
   // Set sleep enable (SE) bit:
@@ -676,18 +686,18 @@ void Tamagotchi::sleep(){
   stopOrganicMovement();
   sleep_mode();
   // Upon waking up, sketch continues from this point.
-      Serial.print("Hunger: "); Serial.println(this->hunger);
-    delay(5000);
+   //   Serial.print("Hunger: "); Serial.println(this->hunger);
+  //  delay(5000);
    Serial.println("Sleep disable");
     Serial.flush();
   sleep_disable();
+  readDataFromEEPROM();
   wdt_enable(WDTO_2S);
   
   //  set_sleep_mode(SLEEP_MODE_PWR_SAVE);
    // sleep_enable();
  //   sleep_mode();
-=======
-
+}
 void Tamagotchi::readTouchSensor() {
     if(!myFSLP.isTouch()) {
         if(this->touchCounter > 0) this->touchCounter--;
@@ -701,5 +711,4 @@ void Tamagotchi::readTouchSensor() {
         this->flag_is_pet = 1;
         this->touchCounter = 0;
     }
->>>>>>> master
 }
