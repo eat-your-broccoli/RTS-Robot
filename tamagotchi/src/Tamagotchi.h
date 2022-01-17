@@ -13,6 +13,9 @@
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
+#include <avr/sleep.h>
+#include <avr/wdt.h>
+#include <avr/interrupt.h>
 
 #ifndef SCREEN_ADDRESS
 #define SCREEN_ADDRESS 0x3C
@@ -20,7 +23,7 @@
 
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
-
+#define PIN_FEEDING_BUTTON 18
 
 // class because we don't want to pollute namespace. see #3 in https://www.modernescpp.com/index.php/c-core-guidelines-rules-for-enumerations
 enum class enum_face {
@@ -133,6 +136,7 @@ private:
     void irReceive();
     void irReceiveRoutine();
     void setInstructionSet(InstructionSet *instrSet);
+    void sleep();
     void readTouchSensor();
 };
 

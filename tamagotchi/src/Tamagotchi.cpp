@@ -33,7 +33,13 @@
 // voltage reading
 #define VOLT_SMOOTHING 0.2
 #define VOLT_BATTERY_UPPER_LIMIT 7.0
+#if !defined DEBUG || DEBUG == 0
 #define VOLT_BATTERY_LOWER_LIMIT 4.0
+#endif
+#if !defined VOLT_BATTERY_LOWER_LIMIT
+    float VOLT_BATTERY_LOWER_LIMIT = 4.0;
+#endif
+//#define VOLT_BATTERY_LOWER_LIMIT 6.9//4.0
 
 // how long one face stays on
 #define FACE_UPDATE_COOLDOWN 4000
@@ -175,7 +181,9 @@ void Tamagotchi::loop()
         Serial.println(batteryLevel);
         Serial.print("sleepyness = ");
         Serial.println(sleepyness);
-        
+        if (this->sleepyness == 100){
+            sleep();
+        } 
         this->flag_read_battery = 0;
     }
 
@@ -400,6 +408,7 @@ void Tamagotchi::organicMovement() {
     uint8_t dirL = (instr->dir >> 1);  // 11 >> 1 = 01   
     
     // execute instruction
+    this->ts_move_instruction = time;
     myEngine.move(dirR, instr->R, dirL, instr->L);
 
     // if instr is 255, it will turn randomly
@@ -629,7 +638,12 @@ void Tamagotchi::irReceiveRoutine() {
         case IR_2: 
             this->flag_is_pet = 1;
             break;
-
+         case IR_3: 
+         
+          Serial.println("IR Button 3 preshed");
+          delay(1000);
+            sleep();
+            break;
         #ifdef DEBUG_ADVANCED_IR_CONTROL && DEBUG_ADVANCED_IR_CONTROL > 0
         case IR_7: 
             this->writeDataToEEPROM();
@@ -661,7 +675,36 @@ void Tamagotchi::setInstructionSet(InstructionSet *instrSet) {
     this->ts_move_instruction = 0;
 }
 
+void Tamagotchi::sleep(){
+    Serial.println("Sleep modus");
+    displayFace(enum_face::pleading);
+ //   Serial.print("Hunger: "); Serial.println(this->hunger);
+  //  delay(5000);
+    writeDataToEEPROM();
+    detachInterrupt(digitalPinToInterrupt(PIN_FEEDING_BUTTON));
+    Serial.flush();
 
+     // Choose our preferred sleep mode:
+  set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+  // Set sleep enable (SE) bit:
+  sleep_enable();
+  // Put the device to sleep:
+  wdt_disable();
+  stopOrganicMovement();
+  sleep_mode();
+  // Upon waking up, sketch continues from this point.
+   //   Serial.print("Hunger: "); Serial.println(this->hunger);
+  //  delay(5000);
+   Serial.println("Sleep disable");
+    Serial.flush();
+  sleep_disable();
+  readDataFromEEPROM();
+  wdt_enable(WDTO_2S);
+  
+  //  set_sleep_mode(SLEEP_MODE_PWR_SAVE);
+   // sleep_enable();
+ //   sleep_mode();
+}
 void Tamagotchi::readTouchSensor() {
     if(!myFSLP.isTouch()) {
         if(this->touchCounter > 0) this->touchCounter--;
