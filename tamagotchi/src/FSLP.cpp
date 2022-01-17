@@ -81,7 +81,6 @@ void FSLP::analogReset() {
 
 boolean FSLP::isTouch() {
     int pressure = myFSLP.getPressure();
-    Serial.println(pressure);
     if(pressure >= PRESSURE_THRESHOLD) {
         return true;
     }
