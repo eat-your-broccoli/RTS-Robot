@@ -674,7 +674,6 @@ void Tamagotchi::sleep(){
   //  delay(5000);
     writeDataToEEPROM();
     detachInterrupt(digitalPinToInterrupt(PIN_FEEDING_BUTTON));
-    .sleepingDetachInterrupt();
     Serial.flush();
 
      // Choose our preferred sleep mode:

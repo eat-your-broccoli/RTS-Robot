@@ -15,6 +15,7 @@
 
 #define BAUD_RATE 9600
 void interruptSleepButton(){
+  sleepingAttachInterrupt();
   Serial.println("wakup");
 }
 
@@ -32,7 +33,14 @@ void setup()
   attachInterrupt(digitalPinToInterrupt(PIN_FEEDING_BUTTON), interruptFeedingButton, RISING);
    attachInterrupt(digitalPinToInterrupt(PIN_SLEEPING_BUTTON),interruptSleepButton , RISING);
 }
-
+/*
+static void sleepingDetachInterrupt(){
+  detachInterrupt(digitalPinToInterrupt(PIN_FEEDING_BUTTON));
+}
+*/
+void sleepingAttachInterrupt(){
+   attachInterrupt(digitalPinToInterrupt(PIN_FEEDING_BUTTON), interruptFeedingButton, RISING);
+}
 void interruptFeedingButton(){
   myTamagotchi.setIsFedFlag();
 }
