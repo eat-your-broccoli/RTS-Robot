@@ -24,9 +24,17 @@ This robot has a TB6612-chip. If this project does not work on your robot, check
 
 5. To confirm that installation was successful, the blue bar at the bottom should display new icons. We're interested in the 🏠, ✔ and ➡ buttons.
 
-### Imports
+### Import project in Platform.IO
 
-No imports need to be done. 
+1. click on the 🏠 button at the blue bar at the bottom. Platform.IO Home screen opens.
+
+2. click on "Open Project". A file explorer opens.
+
+3. navigate into "RTS-Robot/tamagotchi"
+
+4. click on "open tamagotchi"
+
+5. Platform.IO should now download and install necessary dependencies.
 
 ### Libraries
 
