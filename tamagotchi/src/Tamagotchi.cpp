@@ -81,6 +81,9 @@ Tamagotchi::Tamagotchi()
     this->previousMillisFeeding = 0; // will store last time robot was fed
 };
 
+/**
+ * @brief inits objects, sensors 
+ */
 void Tamagotchi::init(TwoWire *twi) {
     Serial.println("reading data from EEPROM...");
     readDataFromEEPROM();
@@ -148,6 +151,9 @@ void Tamagotchi::onTick()
     this->flag_read_battery = 1;
 }
 
+/**
+ * @brief main routine
+ */
 void Tamagotchi::loop()
 {
     int hasAnythingChanged = 0;
@@ -268,6 +274,9 @@ void Tamagotchi::readDataFromEEPROM()
     Serial.print("Sleepyness: "); Serial.println(this->sleepyness);
 }
 
+/**
+ * @brief writes data to EEPROM
+ */
 void Tamagotchi::writeDataToEEPROM()
 {
     Serial.println("writing values: ");
@@ -280,10 +289,6 @@ void Tamagotchi::writeDataToEEPROM()
 /**
  * @brief write to address in EEPROM
  * only write when written value and newValue deviate above tolerance
- * 
- * @param address 
- * @param value 
- * @param tolerance 
  */
 void Tamagotchi::writeToEEPROM(int address, int value)
 {
@@ -299,12 +304,12 @@ float Tamagotchi::readBatteryLevel() {
     return Voltage;
 }
 
+/**
+ * @brief converts the voltage to sleepyness
+ */
 uint8_t Tamagotchi::convertVoltToSleepyness(float voltage) {
     if(voltage > VOLT_BATTERY_UPPER_LIMIT) return 0;
     if(voltage < VOLT_BATTERY_LOWER_LIMIT) return 100;
-    // voltage = 4.3
-    // lower = 4.0
-    // 0.3 / 3.0 = 0,1 * 100 = 10
     return (uint8_t) (100 - ((voltage - VOLT_BATTERY_LOWER_LIMIT) / (VOLT_BATTERY_UPPER_LIMIT - VOLT_BATTERY_LOWER_LIMIT)) * 100);
 }
 
@@ -348,9 +353,7 @@ void Tamagotchi::organicMovement() {
         // if yes, stop. Turn a bit
         uint16_t dist = myUltrasonicSensor.read();
         // if ultrasonic sensor detects obstacle within 20cm of range
-        // Serial.println((String) "my distance is "+dist);
         if(this->isMovementBlocked || isDistInRange(dist, 0, MIN_DISTANCE)) {
-            // Serial.println("movement is blocked");
             findUnblockedDirection();
             myServo.reset();
             return;
@@ -372,9 +375,6 @@ void Tamagotchi::organicMovement() {
         this->setInstructionSet(this->randomInstructionSet());
     }
 
-    // Instruction *instr = (this->move_instructionSet->instr[this->move_instructionIndex]);
-
-    // TODO timer overflows
     // check if current instruction's time has passed
     if(this->ts_move_instruction != 0 && time - this->ts_move_instruction <= (move_time_instruction)) {
         // do nothing
@@ -405,6 +405,10 @@ void Tamagotchi::organicMovement() {
     else myServo.turn(instr->servo);
 }
 
+/**
+ * @brief stops organic movement. resets movement variables. stops engine. resets servo.
+ * 
+ */
 void Tamagotchi::stopOrganicMovement() {
     Serial.println("stopping organic movement");
     myEngine.stop();
@@ -493,15 +497,29 @@ void Tamagotchi::findUnblockedDirection() {
 
 /**
  * @brief checks if measure is in range
- * 
  */
 boolean Tamagotchi::isDistInRange(unsigned int dist, unsigned int min, unsigned int max) {
     return (dist >= min) && (dist < max);
 }
 
+/**
+ * @brief returns pointer of a random instruction set
+ */
 InstructionSet* Tamagotchi::randomInstructionSet() {
     return IS_ARRAY_ORGANIC[random(0, IS_ARRAY_ORGANIC_LENGTH)];
 }
+
+/**
+ * @brief sets a instruction set. resets organic movement variables
+ */
+void Tamagotchi::setInstructionSet(InstructionSet *instrSet) {
+    this->move_instructionSet = instrSet;
+    this->isOrganicMovement = 1;
+    this->move_instructionIndex = -1;
+    this->move_instructionSetIndex = 1;
+    this->ts_move_instruction = 0;
+}
+
 
 /* @brief displays the face
  * NOTE: DO NOT CALL THIS METHOD DIRECTLY
@@ -593,6 +611,9 @@ void Tamagotchi::setDisplayFace(enum_face index, uint8_t priority) {
     }
 }
 
+/**
+ * @brief chooses a face to display based on internal tamagotchi state
+ */
 void Tamagotchi::chooseFace() {
     if(this->sleepyness > 90) {
         setDisplayFace(enum_face::sleepy, 20);
@@ -613,11 +634,18 @@ void Tamagotchi::chooseFace() {
     setDisplayFace(enum_face::happy, 5);
 }
 
+/**
+ * @brief sets the is fed flag
+ * 
+ */
 void Tamagotchi::setIsFedFlag()
 {
     this->flag_is_fed = 1;
 }
 
+/**
+ * @brief reads from IR remote
+ */
 void Tamagotchi::irReceive() {
     if(irRemote.DeviceDriverSet_IRrecv_Get(&irRecData) == false) {
         irRecData = 0;
@@ -627,10 +655,13 @@ void Tamagotchi::irReceive() {
     #endif
 }
 
+/**
+ * @brief uses instruction from IR remote
+ */
 void Tamagotchi::irReceiveRoutine() {
     if(irRecData == 0) return;
     switch(irRecData) {
-        case IR_1: // petting
+        case IR_1:
             this->setIsFedFlag();
             break;
         case IR_2: 
@@ -665,32 +696,24 @@ void Tamagotchi::irReceiveRoutine() {
     }
 }
 
-void Tamagotchi::setInstructionSet(InstructionSet *instrSet) {
-    this->move_instructionSet = instrSet;
-    this->isOrganicMovement = 1;
-    this->move_instructionIndex = -1;
-    this->move_instructionSetIndex = 1;
-    this->ts_move_instruction = 0;
-}
 
+/**
+ * @brief puts tamagotchi to sleep
+ * 
+ */
 void Tamagotchi::sleep(){
     Serial.println("Sleep modus");
     displayFace(enum_face::sleeping);
- //   Serial.print("Hunger: "); Serial.println(this->hunger);
-  //  delay(5000);
     writeDataToEEPROM();
     detachInterrupt(digitalPinToInterrupt(PIN_FEEDING_BUTTON));
     Serial.flush();
-
-     // Choose our preferred sleep mode:
     set_sleep_mode(SLEEP_MODE_PWR_DOWN);
-    // Set sleep enable (SE) bit:
     sleep_enable();
-    // Put the device to sleep:
     wdt_disable();
     stopOrganicMovement();
+    // will sleep after this instruction
     sleep_mode();
-    // Upon waking up, sketch continues from this point.
+    // starts here after waking up
     Serial.println("Sleep disable");
     Serial.flush();
     sleep_disable();
@@ -699,6 +722,11 @@ void Tamagotchi::sleep(){
     wdt_reset();
     chooseFace(); // update face
 }
+
+/**
+ * @brief reads from touch sensor. determines if robot is petted
+ * 
+ */
 void Tamagotchi::readTouchSensor() {
     if(!myFSLP.isTouch()) {
         if(this->touchCounter > 0) this->touchCounter--;
@@ -715,5 +743,4 @@ void Tamagotchi::readTouchSensor() {
             this->touchCounter = 0;
         }
     }
-    
 }

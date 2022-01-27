@@ -14,10 +14,6 @@
 #define PIN_SLEEPING_BUTTON 19 // select free interrupt pin
 
 #define BAUD_RATE 9600
-void interruptSleepButton(){
-  sleepingAttachInterrupt();
-  Serial.println("wakup");
-}
 
 void setup()
 {
@@ -37,14 +33,19 @@ void setup()
 void sleepingAttachInterrupt(){
    attachInterrupt(digitalPinToInterrupt(PIN_FEEDING_BUTTON), interruptFeedingButton, RISING);
 }
+
 void interruptFeedingButton(){
   Serial.println("button press for feeding");
   myTamagotchi.setIsFedFlag();
 }
 
+void interruptSleepButton(){
+  sleepingAttachInterrupt();
+  Serial.println("wakup");
+}
+
 void loop()
 {
-  //put your main code here, to run repeatedly :
   wdt_reset();
   myTamagotchi.loop();
 }

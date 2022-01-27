@@ -47,11 +47,8 @@ private:
     volatile int affection;
     volatile int hunger;
     volatile int sleepyness;
-    float smoothedVolt;
     unsigned int tickCounter;
-    volatile float VoltageData_V;        //Battery Voltage Value
-    const float VoltageDetection = 7.00;
-    boolean VoltageDetectionStatus = false;
+    float smoothedVolt;
     
     unsigned long previousMillisFeeding;
     unsigned long previousMillisPetting;
@@ -95,6 +92,7 @@ private:
     volatile byte flag_is_fed;
     volatile byte flag_read_battery;
     volatile byte flag_update_display;
+    volatile byte flag_button;
 
     // touch counter
     int touchCounter = 0;
@@ -107,7 +105,6 @@ private:
     // index of the face that is displayed
     enum_face display_index = enum_face::init;
     enum_face display_index_current = enum_face::init;
-    volatile byte flag_button;
 
     // ir remote data
     uint8_t irRecData;
